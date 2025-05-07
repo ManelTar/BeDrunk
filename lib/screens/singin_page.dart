@@ -1,14 +1,87 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:proyecto_aa/components/my_password_textfield.dart';
 import 'package:proyecto_aa/components/my_squaretile.dart';
 import 'package:proyecto_aa/components/my_textfield.dart';
 
-class SinginPage extends StatelessWidget {
-  const SinginPage({super.key});
+class SinginPage extends StatefulWidget {
+  final Function()? onTap;
+  const SinginPage({super.key, required this.onTap});
+
+  @override
+  State<SinginPage> createState() => _SinginPageState();
+}
+
+class _SinginPageState extends State<SinginPage> {
+  final userController = TextEditingController();
+  final passController = TextEditingController();
+  final confirmPassController = TextEditingController();
+
+  void crearCuenta() async {
+    // Lógica para crear cuenta
+    // Mostrar circulo de carga
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: LoadingAnimationWidget.stretchedDots(
+              color: Theme.of(context).colorScheme.primary,
+              size: 75,
+            ),
+          );
+        });
+
+    try {
+      //comprobar contraseñas
+      if (passController.text == confirmPassController.text) {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: userController.text,
+          password: passController.text,
+        );
+      } else {
+        mostrarMensajeErrorContrasenas("Las contraseñas no coniciden");
+      }
+      Navigator.pop(context); // Solo si el login es exitoso
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      print('Error al hacer login: ${e.code}');
+      if (e.code == 'invalid-credential') {
+        mostrarMensajeError("Email o contraseña incorrectos");
+      }
+    }
+  }
+
+  void mostrarMensajeErrorContrasenas(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          mensaje,
+          textAlign: TextAlign.center,
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void mostrarMensajeError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          mensaje,
+          textAlign: TextAlign.center,
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController userController = TextEditingController();
-    final TextEditingController passController = TextEditingController();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
@@ -47,14 +120,14 @@ class SinginPage extends StatelessWidget {
               height: 20,
             ),
             // Input de contraseña
-            MyTextfield(
+            MyPasswordTextfield(
                 hintText: 'Introduce tu contraseña',
                 controller: passController,
                 labelText: 'Contraseña'),
             const SizedBox(
               height: 20,
             ),
-            MyTextfield(
+            MyPasswordTextfield(
                 hintText: 'Vuelve a introducir tu contraseña',
                 controller: passController,
                 labelText: 'Contraseña'),
@@ -74,11 +147,7 @@ class SinginPage extends StatelessWidget {
             ),
             // Boton de login
             ElevatedButton(
-              onPressed: () {
-                // Aquí puedes agregar la lógica de inicio de sesión
-                // Por ejemplo, verificar las credenciales del usuario
-                // y navegar a la página principal si son correctas.
-              },
+              onPressed: crearCuenta,
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 60, vertical: 18),
@@ -123,7 +192,7 @@ class SinginPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 60),
             // Otras opciones de login
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +203,7 @@ class SinginPage extends StatelessWidget {
               ],
             ),
             const SizedBox(
-              height: 30,
+              height: 60,
             ),
             // Crear sesión
             Row(
@@ -143,7 +212,7 @@ class SinginPage extends StatelessWidget {
                 Text('¿Ya tienes una cuenta?'),
                 SizedBox(width: 5),
                 GestureDetector(
-                  // onTap: widget.onTap,
+                  onTap: widget.onTap,
                   child: Text(
                     '¡Inicia sesión!',
                     style: TextStyle(

@@ -1,152 +1,146 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/flutter_login.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:proyecto_aa/components/my_password_textfield.dart';
 import 'package:proyecto_aa/components/my_squaretile.dart';
 import 'package:proyecto_aa/components/my_textfield.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  final Function()? onTap;
+  const LoginPage({super.key, required this.onTap});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final userController = TextEditingController();
+
+  final passController = TextEditingController();
+
+  Future<String?> iniciarSesion(LoginData data) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: data.name,
+        password: data.password,
+      );
+      return null; // Login exitoso
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential') {
+        return 'Email o contraseña incorrectos';
+      }
+      return 'Error inesperado: ${e.message}';
+    }
+  }
+
+  Future<String?> crearCuenta(SignupData data) async {
+    // Lógica para crear cuenta
+    // Mostrar circulo de carga
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: LoadingAnimationWidget.stretchedDots(
+              color: Theme.of(context).colorScheme.primary,
+              size: 75,
+            ),
+          );
+        });
+
+    try {
+      //comprobar contraseñasif (passController.text == confirmPassController.text) {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: data.name.toString(),
+        password: data.password.toString(),
+      );
+
+      Navigator.pop(context); // Solo si el login es exitoso
+      return null; // Login exitoso
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      if (e.code == 'invalid-credential') {
+        mostrarMensajeError("Email o contraseña incorrectos");
+      }
+    }
+    return null;
+  }
+
+  void mostrarMensajeError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          mensaje,
+          textAlign: TextAlign.center,
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController userController = TextEditingController();
-    final TextEditingController passController = TextEditingController();
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-          child: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 50,
-            ),
-            // Icono de la aplicación
-            Center(
-              child: Icon(
-                Icons.person_2,
-                size: 150,
-              ),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            // Texto de bienvenida
-            const Text(
-              "¡Bienvenido!",
-              style: TextStyle(
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            // Input de usuario
-            MyTextfield(
-                hintText: '', controller: userController, labelText: 'Usuario'),
-            const SizedBox(
-              height: 20,
-            ),
-            // Input de contraseña
-            MyTextfield(
-                hintText: 'Introduce tu contraseña',
-                controller: passController,
-                labelText: 'Contraseña'),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                Text(
-                  '¿Has olvidado la contraseña?',
-                )
-              ]),
-            ),
-            const SizedBox(
-              height: 25,
-            ),
-            // Boton de login
-            ElevatedButton(
-              onPressed: () {
-                // Aquí puedes agregar la lógica de inicio de sesión
-                // Por ejemplo, verificar las credenciales del usuario
-                // y navegar a la página principal si son correctas.
-              },
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 60, vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: const Text(
-                "Iniciar sesión",
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            // Texto
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Divider(
-                      thickness: 0.5,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  )),
-                  Text(
-                    'O continua con',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                  Expanded(
-                      child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Divider(
-                      thickness: 0.5,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ))
-                ],
-              ),
-            ),
-            const SizedBox(height: 50),
-            // Otras opciones de login
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SquareTile(onTap: () {}, imagePath: 'lib/images/google.png'),
-                SizedBox(width: 15),
-                SquareTile(onTap: () {}, imagePath: 'lib/images/apple.png'),
-              ],
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            // Crear sesión
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('¿No tienes cuenta?'),
-                SizedBox(width: 5),
-                GestureDetector(
-                  // onTap: widget.onTap,
-                  child: Text(
-                    '¡Crea una!',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold),
-                  ),
-                )
-              ],
-            )
-          ],
+      body: FlutterLogin(
+        onLogin: iniciarSesion,
+        onSignup: crearCuenta,
+        onRecoverPassword: (String email) async {
+          // Implementa aquí si quieres recuperación de contraseña
+          try {
+            await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+            mostrarMensajeError(
+                "Se ha enviado un correo para recuperar la contraseña.");
+          } on FirebaseAuthException catch (e) {
+            if (e.code == 'user-not-found') {
+              mostrarMensajeError("No se encontró una cuenta con ese email.");
+            } else {
+              mostrarMensajeError("Error al intentar recuperar la contraseña.");
+            }
+          }
+          return null; // o devuelve un mensaje de error si aplica
+        },
+        logo: const AssetImage('lib/images/google.png'),
+        title: "Hola!",
+        messages: LoginMessages(
+          providersTitleFirst: 'O inicia sesión con',
+          userHint: 'Email',
+          passwordHint: 'Contraseña',
+          confirmPasswordHint: 'Confirmar contraseña',
+          loginButton: 'Iniciar sesión',
+          signupButton: 'Crear cuenta',
+          recoverPasswordButton: 'Recuperar contraseña',
+          forgotPasswordButton: '¿Has olvidado tu contraseña?',
+          recoverPasswordIntro:
+              'Introduce tu email para recuperar tu contraseña',
+          recoverPasswordDescription:
+              'Te enviaremos un email con un enlace para recuperar tu contraseña',
         ),
-      )),
+        loginProviders: <LoginProvider>[
+          LoginProvider(
+            icon: FontAwesomeIcons.google,
+            label: 'Google',
+            callback: () async {
+              debugPrint('start google sign in');
+              //await Future.delayed(loginTime);
+              debugPrint('stop google sign in');
+              return null;
+            },
+          ),
+          LoginProvider(
+            icon: FontAwesomeIcons.apple,
+            label: 'Apple',
+            callback: () async {
+              debugPrint('start google sign in');
+              //await Future.delayed(loginTime);
+              debugPrint('stop google sign in');
+              return null;
+            },
+          ),
+        ],
+      ),
     );
   }
 }

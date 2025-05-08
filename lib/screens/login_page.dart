@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:proyecto_aa/components/my_password_textfield.dart';
-import 'package:proyecto_aa/components/my_squaretile.dart';
-import 'package:proyecto_aa/components/my_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:proyecto_aa/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
@@ -124,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
             label: 'Google',
             callback: () async {
               debugPrint('start google sign in');
-              //await Future.delayed(loginTime);
+              AuthService().signInWithGoogle();
               debugPrint('stop google sign in');
               return null;
             },

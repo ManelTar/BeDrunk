@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/models/juego.dart';
@@ -34,7 +33,8 @@ class _HomePageState extends State<HomePage> {
       return snapshot.docs.map((doc) {
         return Juego(
           nombre: doc.id,
-          jugadores: doc['Jugadores'],
+          jugadoresMin: doc['JugadoresMin'],
+          jugadoresMax: doc['JugadoresMax'],
           reglas: doc['Instrucciones'],
         );
       }).toList();
@@ -107,10 +107,12 @@ class _HomePageState extends State<HomePage> {
                           juego.nombre,
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          "Jugadores: ${juego.jugadores}",
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
+                        Row(children: [
+                          Text(
+                            'Jugadores: ${juego.jugadoresMin}${juego.jugadoresMax == -1 ? " " : "-"}${juego.jugadoresMax == -1 ? "o más" : juego.jugadoresMax}',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ]),
                         const SizedBox(height: 8),
                         Text(juego.reglas),
                       ],

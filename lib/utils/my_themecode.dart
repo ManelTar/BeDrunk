@@ -20,9 +20,8 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class AppTheme {
   // The FlexColorScheme defined light mode ThemeData.
   static ThemeData light = FlexThemeData.light(
-    textTheme: GoogleFonts.robotoTextTheme(),
     // Using FlexColorScheme built-in FlexScheme enum based colors
-    scheme: FlexScheme.gold,
+    scheme: FlexScheme.deepOrangeM3,
     // Component theme configurations for light mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
@@ -42,7 +41,7 @@ abstract final class AppTheme {
   static ThemeData dark = FlexThemeData.dark(
     textTheme: GoogleFonts.robotoTextTheme(),
     // Using FlexColorScheme built-in FlexScheme enum based colors.
-    scheme: FlexScheme.gold,
+    scheme: FlexScheme.deepOrangeM3,
     // Component theme configurations for dark mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,

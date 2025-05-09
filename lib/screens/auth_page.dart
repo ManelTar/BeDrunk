@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:proyecto_aa/screens/home_page.dart';
 import 'package:proyecto_aa/screens/login_or_register.dart';
+import 'package:proyecto_aa/screens/main_page.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -18,7 +18,7 @@ class AuthPage extends StatelessWidget {
               return const Center(
                   child: Text('Error al cargar la autenticación'));
             } else if (snapshot.hasData) {
-              return const HomePage(); // Usuario autenticado
+              return const MainPage(); // Usuario autenticado
             } else {
               return LoginOrRegisterPage(); // Usuario no autenticado
             }

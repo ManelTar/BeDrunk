@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Juego {
   final String nombre;
   final int jugadoresMin;
@@ -14,4 +16,16 @@ class Juego {
     required this.descripcion,
     required this.gif,
   });
+
+  factory Juego.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Juego(
+      nombre: doc.id,
+      jugadoresMin: data['JugadoresMin'],
+      jugadoresMax: data['JugadoresMax'],
+      descripcion: data['Descripcion'],
+      gif: data['Gif'],
+      reglas: data['Instrucciones'],
+    );
+  }
 }

@@ -1,13 +1,12 @@
 import 'dart:typed_data';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_aa/services/storage_service.dart';
 
 class MyDrawerPicture extends StatefulWidget {
-  const MyDrawerPicture({super.key});
+  final VoidCallback? onTap;
+
+  const MyDrawerPicture({super.key, this.onTap});
 
   @override
   State<MyDrawerPicture> createState() => _MyProfilePictureState();
@@ -27,14 +26,12 @@ class _MyProfilePictureState extends State<MyDrawerPicture> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 13),
+      padding: const EdgeInsets.only(left: 0),
       child: GestureDetector(
-        onTap: () {
-          Scaffold.of(context).openDrawer();
-        },
+        onTap: widget.onTap,
         child: Container(
-          height: 200,
-          width: 200,
+          height: 55,
+          width: 60,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             image: pickedImage != null

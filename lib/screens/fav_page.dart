@@ -1,14 +1,17 @@
+// IMPORTS IGUALES
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:proyecto_aa/components/my_card_picture.dart';
+import 'package:proyecto_aa/components/my_coleccion_picture.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/models/juego.dart';
+import 'package:proyecto_aa/screens/coleccion_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
-import 'package:proyecto_aa/services/fav_service.dart';
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
 
@@ -20,44 +23,73 @@ class FavPage extends StatefulWidget {
 }
 
 class _FavPageState extends State<FavPage> {
-  late Future<List<Juego>> _favJuegosFuture;
+  late Future<List<Map<String, dynamic>>> _coleccionesFuture;
   final _advancedDrawerController = AdvancedDrawerController();
 
   @override
   void initState() {
     super.initState();
-    _favJuegosFuture = _getFavJuegos();
+    _coleccionesFuture = _getColeccionesConJuegos();
   }
 
   void cerrarSesion() async {
     await FirebaseAuth.instance.signOut();
   }
 
-  Future<List<Juego>> _getFavJuegos() async {
-    List<String> nombres = await FavService().getFav();
-    if (nombres.isEmpty) return [];
-
-    final juegosSnapshot = await FirebaseFirestore.instance
-        .collection('juegos')
-        .where(FieldPath.documentId, whereIn: nombres)
-        .get();
-
-    return juegosSnapshot.docs.map((doc) {
-      return Juego(
-        nombre: doc.id,
-        jugadoresMin: doc['JugadoresMin'],
-        jugadoresMax: doc['JugadoresMax'],
-        reglas: doc['Instrucciones'],
-        descripcion: doc['Descripcion'],
-        gif: doc['Gif'],
-      );
-    }).toList();
+  // 🔁 Refrescar colecciones
+  Future<void> _refreshColecciones() async {
+    setState(() {
+      _coleccionesFuture = _getColeccionesConJuegos();
+    });
   }
 
-  Future<void> _refreshJuegos() async {
-    setState(() {
-      _favJuegosFuture = _getFavJuegos();
-    });
+  // 🔽 Obtener colecciones + juegos
+  Future<List<Map<String, dynamic>>> _getColeccionesConJuegos() async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final coleccionesSnap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('colecciones')
+        .get();
+
+    List<Map<String, dynamic>> resultado = [];
+
+    for (var doc in coleccionesSnap.docs) {
+      final data = doc.data();
+      final nombre = data['nombre'];
+      final juegosIds = List<String>.from(data['juegos'] ?? []);
+
+      if (juegosIds.isEmpty) {
+        resultado.add({'id': doc.id, 'nombre': nombre, 'juegos': []});
+        continue;
+      }
+
+      final juegosSnap = await FirebaseFirestore.instance
+          .collection('juegos')
+          .where(FieldPath.documentId, whereIn: juegosIds)
+          .get();
+
+      final juegos = juegosSnap.docs.map((doc) {
+        return Juego(
+          nombre: doc.id,
+          jugadoresMax: doc['JugadoresMax'],
+          reglas: doc['Instrucciones'],
+          descripcion: doc['Descripcion'],
+          gif: doc['Gif'],
+          foto: doc['foto'],
+          jugable: doc['Jugable'] ?? false,
+          tipo: doc['Tipo'] ?? '',
+        );
+      }).toList();
+
+      resultado.add({
+        'id': doc.id,
+        'nombre': nombre,
+        'juegos': juegos,
+      });
+    }
+
+    return resultado;
   }
 
   @override
@@ -65,9 +97,6 @@ class _FavPageState extends State<FavPage> {
     return AdvancedDrawer(
       backdropColor: Theme.of(context).colorScheme.surfaceContainerHigh,
       controller: _advancedDrawerController,
-      animationCurve: Curves.easeInOut,
-      animationDuration: const Duration(milliseconds: 300),
-      animateChildDecoration: true,
       childDecoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
@@ -101,8 +130,8 @@ class _FavPageState extends State<FavPage> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('Favoritos'),
+              leading: const Icon(Icons.folder_special),
+              title: const Text('Colecciones'),
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const FavPage()),
@@ -118,27 +147,41 @@ class _FavPageState extends State<FavPage> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              MyDrawerPicture(
-                onTap: _handleMenuButtonPressed,
-              ),
-              const SizedBox(width: 12), // espacio entre imagen y texto
-              const Text(
-                'Home Page',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
+          title: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
+              children: [
+                MyDrawerPicture(
+                  onTap: _handleMenuButtonPressed,
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                const Text(
+                  'Tus Colecciones',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10, right: 9),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.add,
+                  size: 32,
+                ),
+                onPressed: () {
+                  mostrarDialogoColecciones();
+                },
+              ),
+            ),
+          ],
         ),
         body: LiquidPullToRefresh(
-          onRefresh: _refreshJuegos,
+          onRefresh: _refreshColecciones,
           animSpeedFactor: 3,
-          child: FutureBuilder<List<Juego>>(
-            future: _favJuegosFuture,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _coleccionesFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -153,109 +196,46 @@ class _FavPageState extends State<FavPage> {
                 return Center(child: Text('Error: ${snapshot.error}'));
               }
 
-              final juegos = snapshot.data ?? [];
+              final colecciones = snapshot.data ?? [];
 
-              if (juegos.isEmpty) {
-                return const Center(child: Text('No tienes juegos favoritos.'));
+              if (colecciones.isEmpty) {
+                return LiquidPullToRefresh(
+                    onRefresh: _refreshColecciones,
+                    animSpeedFactor: 3,
+                    child: const Center(child: Text('No tienes colecciones.')));
               }
 
               return ListView.builder(
-                itemCount: juegos.length,
+                itemCount: colecciones.length,
                 padding: const EdgeInsets.all(14),
                 itemBuilder: (context, index) {
-                  final juego = juegos[index];
+                  final coleccion = colecciones[index];
+                  final nombre = coleccion['nombre'];
+                  final juegos =
+                      (coleccion['juegos'] as List?)?.cast<Juego>() ?? [];
 
-                  return ExpansionTileCard(
-                    initialPadding: const EdgeInsets.only(bottom: 10),
-                    finalPadding: const EdgeInsets.only(bottom: 10),
-                    baseColor:
-                        Theme.of(context).colorScheme.surfaceContainerHigh,
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      child: Icon(Icons.videogame_asset),
-                    ),
-                    elevation: 2,
-                    title: Text(juego.nombre),
-                    subtitle: Text(
-                      'Jugadores: ${juego.jugadoresMin}${juego.jugadoresMax == -1 ? " " : "-"}${juego.jugadoresMax == -1 ? "o más" : juego.jugadoresMax}',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    children: <Widget>[
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          child: Text(
-                            juego.descripcion,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                      OverflowBar(
-                        alignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          TextButton(
-                            onPressed: () {},
-                            child: const Column(
-                              children: <Widget>[
-                                Icon(Icons.play_arrow_rounded),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 2.0),
-                                ),
-                                Text('Jugar'),
-                              ],
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      leading: MyCardPicture(coleccionId: coleccion['id']),
+                      title: Text(nombre,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      subtitle: Text('${juegos.length} juego(s)'),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ColeccionDetallePage(
+                              nombreColeccion: nombre,
+                              juegos: juegos,
+                              coleccionId: coleccion['id'],
                             ),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => giffy.GiffyDialog.image(
-                                  Image.network(
-                                    juego.gif,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  title: Text(
-                                    juego.nombre,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  content: Text(
-                                    juego.reglas,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, 'CANCEL'),
-                                      child: const Text('CANCEL'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, 'OK'),
-                                      child: const Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            child: const Column(
-                              children: <Widget>[
-                                Icon(Icons.info_rounded),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 2.0),
-                                ),
-                                Text('Info'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        );
+                      },
+                    ),
                   );
                 },
               );
@@ -268,5 +248,53 @@ class _FavPageState extends State<FavPage> {
 
   void _handleMenuButtonPressed() {
     _advancedDrawerController.showDrawer();
+  }
+
+  Future<void> mostrarDialogoColecciones() async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final coleccionesRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('colecciones');
+
+    final snapshot = await coleccionesRef.get();
+    final colecciones = snapshot.docs;
+
+    String nombreNuevaColeccion = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Nueva colección'),
+          content: TextField(
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              hintText: 'Nombre de la colección',
+            ),
+            onChanged: (value) {
+              nombreNuevaColeccion = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (nombreNuevaColeccion.trim().isNotEmpty) {
+                  await coleccionesRef.add({
+                    'nombre': nombreNuevaColeccion.trim(),
+                  });
+                  Navigator.pop(context); // Cierra el diálogo de crear
+                }
+              },
+              child: const Text('Crear'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

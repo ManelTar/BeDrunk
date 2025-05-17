@@ -22,6 +22,7 @@ abstract final class AppTheme {
   static ThemeData light = FlexThemeData.light(
     // Using FlexColorScheme built-in FlexScheme enum based colors
     scheme: FlexScheme.deepOrangeM3,
+    surfaceTint: const Color.fromARGB(255, 201, 227, 224),
     // Component theme configurations for light mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
@@ -42,6 +43,7 @@ abstract final class AppTheme {
     textTheme: GoogleFonts.robotoTextTheme(),
     // Using FlexColorScheme built-in FlexScheme enum based colors.
     scheme: FlexScheme.deepOrangeM3,
+    surfaceTint: const Color(0xFFCF9A82),
     // Component theme configurations for dark mode.
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,

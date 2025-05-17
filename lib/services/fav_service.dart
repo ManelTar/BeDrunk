@@ -48,4 +48,46 @@ class FavService {
       print('Error al eliminar favorito: $e');
     }
   }
+
+  Future<void> removeFavColeccion(String nombreJuego) async {
+    final usuario = FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      final coleccionesSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(usuario)
+          .collection('colecciones')
+          .get();
+
+      for (final coleccion in coleccionesSnapshot.docs) {
+        final juegos = List<String>.from(coleccion['juegos'] ?? []);
+
+        if (juegos.contains(nombreJuego)) {
+          await coleccion.reference.update({
+            'juegos': FieldValue.arrayRemove([nombreJuego]),
+          });
+          print(
+              'Juego "$nombreJuego" eliminado de colección "${coleccion.id}"');
+        }
+      }
+    } catch (e) {
+      print('Error al eliminar el juego de las colecciones: $e');
+    }
+  }
+
+  Future<void> removeColeccion(String coleccionId) async {
+    final usuario = FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(usuario)
+          .collection('colecciones')
+          .doc(coleccionId)
+          .delete();
+      print('Colección "$coleccionId" eliminada con éxito.');
+    } catch (e) {
+      print('Error al eliminar la colección: $e');
+    }
+  }
 }

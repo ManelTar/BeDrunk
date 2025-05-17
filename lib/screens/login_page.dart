@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
           }
           return null; // o devuelve un mensaje de error si aplica
         },
-        logo: const AssetImage('lib/images/google.png'),
+        //logo: const AssetImage('lib/images/google.png'),
         title: "Hola!",
         messages: LoginMessages(
           providersTitleFirst: 'O inicia sesión con',

@@ -89,20 +89,23 @@ class _SearchPageState extends State<SearchPage> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              MyDrawerPicture(onTap: _handleMenuButtonPressed),
-              const SizedBox(width: 12),
-              const Text(
-                'Búsqueda',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-              ),
-            ],
+          title: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
+              children: [
+                MyDrawerPicture(onTap: _handleMenuButtonPressed),
+                const SizedBox(width: 12),
+                const Text(
+                  'Búsqueda',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
         ),
         body: Column(
           children: [
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
             MySearchTextfield(
               onChanged: (value) {
                 setState(() {
@@ -138,92 +141,95 @@ class _SearchPageState extends State<SearchPage> {
                     itemCount: juegos.length,
                     itemBuilder: (context, index) {
                       final juego = juegos[index];
-                      return ExpansionTileCard(
-                        initialPadding: const EdgeInsets.only(bottom: 10),
-                        finalPadding: const EdgeInsets.only(bottom: 10),
-                        baseColor:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child:
-                              Image(image: AssetImage('lib/images/google.png')),
-                        ),
-                        elevation: 2,
-                        title: Text(juego.nombre),
-                        subtitle: Text(
-                          'Jugadores: ${juego.jugadoresMin}${juego.jugadoresMax == -1 ? " " : "-"}${juego.jugadoresMax == -1 ? "o más" : juego.jugadoresMax}',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 8.0),
-                              child: Text(
-                                juego.descripcion,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(fontSize: 16),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: ExpansionTileCard(
+                          initialPadding: const EdgeInsets.only(bottom: 10),
+                          finalPadding: const EdgeInsets.only(bottom: 10),
+                          leading: const CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            child: Image(
+                                image: AssetImage('lib/images/google.png')),
+                          ),
+                          initialElevation: 1,
+                          elevation: 2,
+                          title: Text(juego.nombre,
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                            'Jugadores: ${juego.jugadoresMax == -1 ? "" : "2"}${juego.jugadoresMax == -1 ? "" : "-"}${juego.jugadoresMax == -1 ? "Grupos" : juego.jugadoresMax}',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0),
+                                child: Text(
+                                  juego.descripcion,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(fontSize: 16),
+                                ),
                               ),
                             ),
-                          ),
-                          OverflowBar(
-                            alignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              TextButton(
-                                onPressed: () {},
-                                child: const Column(
-                                  children: [
-                                    Icon(Icons.play_arrow_rounded),
-                                    SizedBox(height: 2),
-                                    Text('Jugar'),
-                                  ],
+                            OverflowBar(
+                              alignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                TextButton(
+                                  onPressed: () {},
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.play_arrow_rounded),
+                                      SizedBox(height: 2),
+                                      Text('Jugar'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) =>
-                                        giffy.GiffyDialog.image(
-                                      Image.network(
-                                        juego.gif,
-                                        height: 200,
-                                        fit: BoxFit.cover,
+                                TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) =>
+                                          giffy.GiffyDialog.image(
+                                        Image.network(
+                                          juego.gif,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        title: Text(juego.nombre,
+                                            textAlign: TextAlign.center),
+                                        content: Text(juego.reglas,
+                                            textAlign: TextAlign.center),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('CANCEL'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('OK'),
+                                          ),
+                                        ],
                                       ),
-                                      title: Text(juego.nombre,
-                                          textAlign: TextAlign.center),
-                                      content: Text(juego.reglas,
-                                          textAlign: TextAlign.center),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('CANCEL'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('OK'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                child: const Column(
-                                  children: [
-                                    Icon(Icons.info_rounded),
-                                    SizedBox(height: 2),
-                                    Text('Info'),
-                                  ],
+                                    );
+                                  },
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.info_rounded),
+                                      SizedBox(height: 2),
+                                      Text('Info'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              BotonFavorito(nombreJuego: juego.nombre),
-                            ],
-                          ),
-                        ],
+                                BotonFavorito(nombreJuego: juego.nombre),
+                              ],
+                            ),
+                          ],
+                        ),
                       );
                     },
                   );

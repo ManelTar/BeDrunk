@@ -26,12 +26,12 @@ class _MyProfilePictureState extends State<MyDrawerPicture> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 0),
+      padding: const EdgeInsets.only(top: 0),
       child: GestureDetector(
         onTap: widget.onTap,
         child: Container(
-          height: 55,
-          width: 60,
+          height: 35,
+          width: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             image: pickedImage != null

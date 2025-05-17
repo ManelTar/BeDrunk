@@ -1,10 +1,7 @@
 import 'dart:typed_data';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:proyecto_aa/screens/user_page.dart';
 import 'package:proyecto_aa/services/storage_service.dart';
 
 class MyProfilePicture extends StatefulWidget {
@@ -28,7 +25,11 @@ class _MyProfilePictureState extends State<MyProfilePicture> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onProfileTaped,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => UserPage()),
+        );
+      },
       child: Padding(
         padding: EdgeInsets.only(bottom: 13),
         child: Container(
@@ -45,30 +46,6 @@ class _MyProfilePictureState extends State<MyProfilePicture> {
         ),
       ),
     );
-  }
-
-  Future<void> onProfileTaped() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-
-    showDialog(
-        context: context,
-        builder: (context) {
-          return Center(
-            child: LoadingAnimationWidget.stretchedDots(
-              color: Theme.of(context).colorScheme.primary,
-              size: 75,
-            ),
-          );
-        });
-
-    await storage.uploadFile('profile_pictures/$usuario.jpg', image);
-
-    Navigator.pop(context); // Solo si el upload es exitoso
-
-    final imageBytes = await image.readAsBytes();
-    setState(() => pickedImage = imageBytes);
   }
 
   Future<void> getProfilePicture() async {

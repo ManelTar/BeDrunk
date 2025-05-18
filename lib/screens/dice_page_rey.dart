@@ -1,9 +1,19 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
 
 class DicePageRey extends StatefulWidget {
   final String titulo;
-  const DicePageRey({Key? key, required this.titulo}) : super(key: key);
+  final String gif;
+  final String reglas;
+  final bool mostrar;
+  const DicePageRey(
+      {super.key,
+      required this.titulo,
+      required this.gif,
+      required this.reglas,
+      required this.mostrar});
 
   @override
   State<DicePageRey> createState() => _DicePageReyState();
@@ -53,6 +63,25 @@ class _DicePageReyState extends State<DicePageRey>
         _controller.reset();
       }
     });
+
+    // Lanzar el diálogo justo después del primer frame:
+    if (widget.mostrar) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (context) => giffy.GiffyDialog.image(
+            Image.network(widget.gif, height: 200, fit: BoxFit.cover),
+            title: Text(widget.titulo, textAlign: TextAlign.center),
+            content: Text(widget.reglas, textAlign: TextAlign.center),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK')),
+            ],
+          ),
+        );
+      });
+    }
   }
 
   void _rollDice() => _controller.forward(from: 0);

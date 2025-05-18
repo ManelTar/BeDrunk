@@ -1,9 +1,21 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
 
 class DicePage extends StatefulWidget {
   final String titulo;
-  const DicePage({Key? key, required this.titulo}) : super(key: key);
+  final String gif;
+  final String reglas;
+  final bool mostrar;
+
+  const DicePage(
+      {Key? key,
+      required this.titulo,
+      required this.gif,
+      required this.reglas,
+      required this.mostrar})
+      : super(key: key);
 
   @override
   State<DicePage> createState() => _DicePageState();
@@ -42,6 +54,24 @@ class _DicePageState extends State<DicePage>
         });
       }
     });
+
+    if (widget.mostrar) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (context) => giffy.GiffyDialog.image(
+            Image.network(widget.gif, height: 200, fit: BoxFit.cover),
+            title: Text(widget.titulo, textAlign: TextAlign.center),
+            content: Text(widget.reglas, textAlign: TextAlign.center),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK')),
+            ],
+          ),
+        );
+      });
+    }
   }
 
   void _rollDice() {

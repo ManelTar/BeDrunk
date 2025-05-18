@@ -6,14 +6,23 @@ import 'package:proyecto_aa/screens/dice_page_rey.dart';
 class GamesPage extends StatelessWidget {
   final String juego;
   final String titulo;
+  final String gif;
+  final String reglas;
+  final bool mostrar;
 
-  const GamesPage({super.key, required this.juego, required this.titulo});
+  const GamesPage(
+      {super.key,
+      required this.juego,
+      required this.titulo,
+      required this.gif,
+      required this.reglas,
+      required this.mostrar});
 
   @override
   Widget build(BuildContext context) {
     // Redirige tan pronto como se cargue la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _irAJuego(context, juego);
+      _irAJuego(context, titulo);
     });
 
     return Scaffold(
@@ -26,18 +35,30 @@ class GamesPage extends StatelessWidget {
     );
   }
 
-  void _irAJuego(BuildContext context, String juego) {
-    switch (juego) {
-      case 'dadosRey':
+  void _irAJuego(BuildContext context, String titulo) {
+    switch (titulo) {
+      case 'Rey del 3':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => DicePageRey(titulo: titulo)),
+          MaterialPageRoute(
+              builder: (_) => DicePageRey(
+                    titulo: titulo,
+                    gif: gif,
+                    reglas: reglas,
+                    mostrar: mostrar,
+                  )),
         );
         break;
-      case 'dados':
+      case 'Ruleta rusa':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => DicePage(titulo: titulo)),
+          MaterialPageRoute(
+              builder: (_) => DicePage(
+                    titulo: titulo,
+                    gif: gif,
+                    reglas: reglas,
+                    mostrar: mostrar,
+                  )),
         );
         break;
       default:

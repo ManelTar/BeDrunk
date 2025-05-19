@@ -2,22 +2,12 @@ import 'dart:math';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:proyecto_aa/models/preguntas.dart';
-import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
 
 class RetoPage extends StatefulWidget {
-  final String titulo;
-  final String gif;
-  final String reglas;
-  final bool mostrar;
-  const RetoPage(
-      {Key? key,
-      required this.titulo,
-      required this.gif,
-      required this.reglas,
-      required this.mostrar})
-      : super(key: key);
+  final List<String> jugadores;
+  const RetoPage({super.key, required this.jugadores});
 
   @override
   State<RetoPage> createState() => _RetoPageState();
@@ -28,7 +18,6 @@ class _RetoPageState extends State<RetoPage> {
   List<Preguntas> _retos = [];
   Preguntas? _retoActual;
   bool _loading = true;
-  bool _started = false;
 
   static const colorizeColors = [
     Colors.purple,
@@ -36,69 +25,32 @@ class _RetoPageState extends State<RetoPage> {
     Colors.yellow,
     Colors.red,
   ];
+  late final List<Color> colorizeNameColors;
 
   static const colorizeTextStyle = TextStyle(fontSize: 50.0);
+  static var colorizeNameStyle =
+      GoogleFonts.battambang(textStyle: TextStyle(fontSize: 75));
 
-  List<String> _jugadores = [];
+  late List<String> _jugadores = [];
   int _turnoJugador = 0;
 
   @override
   void initState() {
     super.initState();
+    _jugadores = widget.jugadores;
+    _cargarRetos();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_started) {
-      _started = true;
-      // Espera a que se complete el primer frame:
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pedirJugadores();
-      });
-    }
-  }
-
-  // 1) Pedir lista de jugadores antes de cargar retos
-  void _pedirJugadores() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        final controlador = TextEditingController();
-        return AlertDialog(
-          title: const Text('Añadir jugadores'),
-          content: TextField(
-            controller: controlador,
-            decoration: const InputDecoration(
-              hintText: 'Nombre de jugador',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                final nombre = controlador.text.trim();
-                if (nombre.isNotEmpty) {
-                  _jugadores.add(nombre);
-                  Navigator.of(ctx).pop();
-                  // volver a pedir otro o finalizar
-                  _pedirJugadores();
-                }
-              },
-              child: const Text('Añadir'),
-            ),
-            if (_jugadores.isNotEmpty)
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _cargarRetos();
-                },
-                child: const Text('Hecho'),
-              ),
-          ],
-        );
-      },
-    );
+    colorizeNameColors = [
+      Theme.of(context).colorScheme.onSurface, // tu color dinámico
+      Colors.purple,
+      Colors.red,
+      Colors.yellow,
+      Colors.blue,
+    ];
   }
 
   // 2) Cargar retos desde Firestore (solo tipo "reto")
@@ -147,7 +99,7 @@ class _RetoPageState extends State<RetoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.titulo)),
+      appBar: AppBar(title: Text("Cubata o Reto")),
       body: GestureDetector(
         onHorizontalDragEnd: _loading ? null : _onSwipe,
         child: Container(
@@ -159,7 +111,14 @@ class _RetoPageState extends State<RetoPage> {
               ? const CircularProgressIndicator()
               : Column(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _buildAnimatedJugador(
+                        key: ValueKey(_retoActual), // aquí detecta cambio
+                      ),
+                    ),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: _buildAnimatedPregunta(
@@ -174,7 +133,7 @@ class _RetoPageState extends State<RetoPage> {
   }
 
 // Esta función construye tu AnimatedTextKit envuelto en un widget con key
-  Widget _buildAnimatedPregunta({required Key key}) {
+  Widget _buildAnimatedJugador({required Key key}) {
     return SizedBox(
       key: key,
       width: double.infinity,
@@ -185,16 +144,48 @@ class _RetoPageState extends State<RetoPage> {
             .copyWith(color: Theme.of(context).colorScheme.onSurface),
         textAlign: TextAlign.center,
         child: AnimatedTextKit(
-          isRepeatingAnimation: false,
-          totalRepeatCount: 1,
+          pause: Duration(milliseconds: 0),
+          isRepeatingAnimation: true,
+          totalRepeatCount: 20,
           animatedTexts: [
-            ColorizeAnimatedText(
-              '${_jugadores[_turnoJugador]}: ${_retoActual!.pregunta}',
-              textStyle: colorizeTextStyle,
-              colors: colorizeColors,
-              speed: const Duration(milliseconds: 200),
-            ),
+            TypewriterAnimatedText(_jugadores[_turnoJugador],
+                textStyle: colorizeNameStyle,
+                speed: Duration(milliseconds: 100)),
+            TypewriterAnimatedText(_jugadores[_turnoJugador],
+                textStyle: colorizeNameStyle,
+                speed: Duration(milliseconds: 100)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedPregunta({required Key key}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10),
+      child: Card(
+        color: Colors.red,
+        elevation: 15,
+        key: key,
+        child: DefaultTextStyle(
+          style: Theme.of(context)
+              .textTheme
+              .headlineMedium!
+              .copyWith(color: Theme.of(context).colorScheme.onSurface),
+          textAlign: TextAlign.center,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: AnimatedTextKit(
+              animatedTexts: [
+                ColorizeAnimatedText(
+                  _retoActual!.pregunta,
+                  textStyle: colorizeTextStyle,
+                  colors: colorizeColors,
+                  speed: const Duration(milliseconds: 200),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

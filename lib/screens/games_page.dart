@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/screens/dice_page.dart';
 import 'package:proyecto_aa/screens/dice_page_rey.dart';
+import 'package:proyecto_aa/screens/names_page.dart';
 import 'package:proyecto_aa/screens/reto_page.dart';
 
 class GamesPage extends StatelessWidget {
@@ -65,13 +66,7 @@ class GamesPage extends StatelessWidget {
       case 'Cubata o Reto':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-              builder: (_) => RetoPage(
-                    titulo: titulo,
-                    gif: gif,
-                    reglas: reglas,
-                    mostrar: mostrar,
-                  )),
+          MaterialPageRoute(builder: (_) => NamesPage()),
         );
         break;
       default:

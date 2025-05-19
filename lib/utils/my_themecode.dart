@@ -20,6 +20,7 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class AppTheme {
   // The FlexColorScheme defined light mode ThemeData.
   static ThemeData light = FlexThemeData.light(
+    textTheme: GoogleFonts.robotoTextTheme(),
     // Using FlexColorScheme built-in FlexScheme enum based colors
     scheme: FlexScheme.deepOrangeM3,
     surfaceTint: const Color.fromARGB(255, 201, 227, 224),

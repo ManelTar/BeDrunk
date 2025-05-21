@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
+import 'package:google_fonts/google_fonts.dart';
 
 class DicePageRey extends StatefulWidget {
   final String titulo;
@@ -145,13 +146,12 @@ class _DicePageReyState extends State<DicePageRey>
             const SizedBox(height: 20),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
-              child: Text(
-                _mensaje,
-                key: ValueKey<String>(_mensaje),
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              child: Text(_mensaje,
+                  key: ValueKey<String>(_mensaje),
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.battambang(
+                      textStyle: TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold))),
             ),
             const SizedBox(height: 40),
             ElevatedButton.icon(

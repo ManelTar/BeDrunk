@@ -4,25 +4,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_animated_text/pretty_animated_text.dart';
-import 'package:proyecto_aa/components/my_pulse_animated_text.dart';
 import 'package:proyecto_aa/models/preguntas.dart';
 
-class RetoPage extends StatefulWidget {
+class CaraPage extends StatefulWidget {
   final List<String> jugadores;
-  const RetoPage({super.key, required this.jugadores});
+  const CaraPage({super.key, required this.jugadores});
 
   @override
-  State<RetoPage> createState() => _RetoPageState();
+  State<CaraPage> createState() => _CaraPageState();
 }
 
-class _RetoPageState extends State<RetoPage> {
+class _CaraPageState extends State<CaraPage> {
   final _random = Random();
   List<Preguntas> _retos = [];
   Preguntas? _retoActual;
   bool _loading = true;
 
-  static var colorizeTextStyle =
-      GoogleFonts.battambang(textStyle: TextStyle(fontSize: 40));
+  static const colorizeTextStyle = TextStyle(fontSize: 40.0);
 
   late List<String> _jugadores = [];
   int _turnoJugador = 0;
@@ -48,7 +46,7 @@ class _RetoPageState extends State<RetoPage> {
               tipo: d['tipo'] ?? '',
             );
           })
-          .where((p) => p.tipo.toLowerCase() == 'reto')
+          .where((p) => p.tipo.toLowerCase() == 'cara')
           .toList();
     } catch (_) {
       _retos = [];
@@ -60,7 +58,8 @@ class _RetoPageState extends State<RetoPage> {
   // 3) Elegir siguiente reto y avanzar turno de jugador
   void _siguienteReto() {
     if (_retos.isEmpty) {
-      _retoActual = Preguntas(pregunta: 'No hay más retos.', tipo: 'reto');
+      _retoActual =
+          Preguntas(pregunta: 'No hay más situaciones.', tipo: 'cara');
     } else {
       _retoActual = _retos[_random.nextInt(_retos.length)];
     }

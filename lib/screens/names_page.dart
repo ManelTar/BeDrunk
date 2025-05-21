@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_aa/screens/cara_page.dart';
 import 'package:proyecto_aa/screens/reto_page.dart';
+import 'package:proyecto_aa/screens/verdad_page.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
 class NamesPage extends StatefulWidget {
-  const NamesPage({super.key});
+  final String titulo;
+  const NamesPage({super.key, required this.titulo});
 
   @override
   State<NamesPage> createState() => _NamesPageState();
@@ -36,10 +39,21 @@ class _NamesPageState extends State<NamesPage> {
 
   void _onStartGame() {
     final jugadores = _tagsController.getTags ?? [];
-    if (jugadores.isNotEmpty) {
+    if (jugadores.isNotEmpty && widget.titulo == "Cubata o Reto") {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => RetoPage(jugadores: jugadores)),
+      );
+    } else if (jugadores.isNotEmpty && widget.titulo == "Cubata o Verdad") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => VerdadPage(jugadores: jugadores)),
+      );
+    } else if (jugadores.isNotEmpty &&
+        widget.titulo == "Que cara pondrías si") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => CaraPage(jugadores: jugadores)),
       );
     }
   }
@@ -53,6 +67,7 @@ class _NamesPageState extends State<NamesPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFieldTags<String>(
               textfieldTagsController: _tagsController,
@@ -70,6 +85,9 @@ class _NamesPageState extends State<NamesPage> {
                   controller: values.textEditingController,
                   focusNode: values.focusNode,
                   decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     hintText: values.tags.isEmpty
                         ? 'Escribe un jugador y pulsa Enter'
                         : '',

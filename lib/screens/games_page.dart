@@ -66,7 +66,28 @@ class GamesPage extends StatelessWidget {
       case 'Cubata o Reto':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => NamesPage()),
+          MaterialPageRoute(
+              builder: (_) => NamesPage(
+                    titulo: titulo,
+                  )),
+        );
+        break;
+      case 'Cubata o Verdad':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => NamesPage(
+                    titulo: titulo,
+                  )),
+        );
+        break;
+      case 'Que cara pondrías si':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => NamesPage(
+                    titulo: titulo,
+                  )),
         );
         break;
       default:

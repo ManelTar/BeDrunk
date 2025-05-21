@@ -138,7 +138,8 @@ class _VerdadPageState extends State<VerdadPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Card(
-          elevation: 15,
+          elevation: 20,
+          shadowColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           key: key,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),

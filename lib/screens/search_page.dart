@@ -10,7 +10,8 @@ import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_search_textfield.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
-import 'package:proyecto_aa/models/juego.dart'; // Asegúrate de importar tu modelo
+import 'package:proyecto_aa/models/juego.dart';
+import 'package:proyecto_aa/screens/games_page.dart'; // Asegúrate de importar tu modelo
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -146,11 +147,6 @@ class _SearchPageState extends State<SearchPage> {
                         child: ExpansionTileCard(
                           initialPadding: const EdgeInsets.only(bottom: 10),
                           finalPadding: const EdgeInsets.only(bottom: 10),
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.transparent,
-                            child: Image(
-                                image: AssetImage('lib/images/google.png')),
-                          ),
                           initialElevation: 1,
                           elevation: 2,
                           title: Text(juego.nombre,
@@ -177,16 +173,30 @@ class _SearchPageState extends State<SearchPage> {
                             OverflowBar(
                               alignment: MainAxisAlignment.spaceAround,
                               children: [
-                                TextButton(
-                                  onPressed: () {},
-                                  child: const Column(
-                                    children: [
-                                      Icon(Icons.play_arrow_rounded),
-                                      SizedBox(height: 2),
-                                      Text('Jugar'),
-                                    ],
+                                if (juego.jugable)
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => GamesPage(
+                                            juego: juego.tipo,
+                                            titulo: juego.nombre,
+                                            gif: juego.gif,
+                                            reglas: juego.reglas,
+                                            mostrar: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Column(
+                                      children: [
+                                        Icon(Icons.play_arrow_rounded),
+                                        SizedBox(height: 2),
+                                        Text('Jugar'),
+                                      ],
+                                    ),
                                   ),
-                                ),
                                 TextButton(
                                   onPressed: () {
                                     showDialog(
@@ -206,7 +216,7 @@ class _SearchPageState extends State<SearchPage> {
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(context),
-                                            child: const Text('CANCEL'),
+                                            child: const Text('CERRAR'),
                                           ),
                                           TextButton(
                                             onPressed: () =>

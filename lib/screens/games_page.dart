@@ -1,11 +1,19 @@
+import 'dart:typed_data';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:proyecto_aa/models/player.dart';
 import 'package:proyecto_aa/screens/dice_page.dart';
 import 'package:proyecto_aa/screens/dice_page_rey.dart';
+import 'package:proyecto_aa/screens/host_unir_page.dart';
+import 'package:proyecto_aa/screens/lobby_page.dart';
 import 'package:proyecto_aa/screens/names_page.dart';
 import 'package:proyecto_aa/screens/reto_page.dart';
+import 'package:proyecto_aa/services/game_service.dart';
+import 'package:proyecto_aa/services/storage_service.dart';
 
-class GamesPage extends StatelessWidget {
+class GamesPage extends StatefulWidget {
   final String juego;
   final String titulo;
   final String gif;
@@ -21,10 +29,15 @@ class GamesPage extends StatelessWidget {
       required this.mostrar});
 
   @override
+  State<GamesPage> createState() => _GamesPageState();
+}
+
+class _GamesPageState extends State<GamesPage> {
+  @override
   Widget build(BuildContext context) {
     // Redirige tan pronto como se cargue la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _irAJuego(context, titulo);
+      _irAJuego(context, widget.titulo);
     });
 
     return Scaffold(
@@ -37,7 +50,7 @@ class GamesPage extends StatelessWidget {
     );
   }
 
-  void _irAJuego(BuildContext context, String titulo) {
+  Future<void> _irAJuego(BuildContext context, String titulo) async {
     switch (titulo) {
       case 'Rey del 3':
         Navigator.pushReplacement(
@@ -45,9 +58,9 @@ class GamesPage extends StatelessWidget {
           MaterialPageRoute(
               builder: (_) => DicePageRey(
                     titulo: titulo,
-                    gif: gif,
-                    reglas: reglas,
-                    mostrar: mostrar,
+                    gif: widget.gif,
+                    reglas: widget.reglas,
+                    mostrar: widget.mostrar,
                   )),
         );
         break;
@@ -57,9 +70,9 @@ class GamesPage extends StatelessWidget {
           MaterialPageRoute(
               builder: (_) => DicePage(
                     titulo: titulo,
-                    gif: gif,
-                    reglas: reglas,
-                    mostrar: mostrar,
+                    gif: widget.gif,
+                    reglas: widget.reglas,
+                    mostrar: widget.mostrar,
                   )),
         );
         break;
@@ -88,6 +101,12 @@ class GamesPage extends StatelessWidget {
               builder: (_) => NamesPage(
                     titulo: titulo,
                   )),
+        );
+        break;
+      case 'Quien es más probable qué':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => HostUnirPage()),
         );
         break;
       default:

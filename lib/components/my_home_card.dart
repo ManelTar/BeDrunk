@@ -19,7 +19,7 @@ class MyHomeCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         color: isSelected
-            ? colorScheme.primary.withOpacity(0.8) // color cuando está activo
+            ? colorScheme.tertiary // color cuando está activo
             : colorScheme.surfaceTint, // color normal
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),

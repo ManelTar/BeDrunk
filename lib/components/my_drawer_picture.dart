@@ -53,6 +53,9 @@ class _MyProfilePictureState extends State<MyDrawerPicture> {
   Future<void> getProfilePicture() async {
     final imageBytes = await storage.getFile('profile_pictures/$usuario.jpg');
     if (imageBytes == null) return;
+
+    if (!mounted) return; // 🛡️ Protege de setState después de dispose
+
     setState(() => pickedImage = imageBytes);
   }
 }

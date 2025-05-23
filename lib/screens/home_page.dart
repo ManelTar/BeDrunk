@@ -252,14 +252,18 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 }
                               },
-                              icon: Icon(juego.jugable
-                                  ? Icons.play_arrow
-                                  : Icons.info),
+                              icon: Icon(
+                                juego.jugable
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.info,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                               label: Text(juego.jugable ? "Jugar" : "Info"),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     Theme.of(context).colorScheme.surfaceTint,
-                                foregroundColor: Colors.white,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onSurface,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),

@@ -1455,6 +1455,8 @@ PODS:
   - PhoneNumberKit/PhoneNumberKitCore (3.7.11)
   - PhoneNumberKit/UIKit (3.7.11):
     - PhoneNumberKit/PhoneNumberKitCore
+  - pretty_animated_text (0.0.1):
+    - Flutter
   - PromisesObjC (2.4.0)
   - RecaptchaInterop (101.0.0)
   - rive_common (0.0.1):
@@ -1481,6 +1483,7 @@ DEPENDENCIES:
   - libphonenumber_plugin (from `.symlinks/plugins/libphonenumber_plugin/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - PhoneNumberKit (~> 3.7.6)
+  - pretty_animated_text (from `.symlinks/plugins/pretty_animated_text/ios`)
   - rive_common (from `.symlinks/plugins/rive_common/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -1540,6 +1543,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/libphonenumber_plugin/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  pretty_animated_text:
+    :path: ".symlinks/plugins/pretty_animated_text/ios"
   rive_common:
     :path: ".symlinks/plugins/rive_common/ios"
   url_launcher_ios:
@@ -1583,6 +1588,7 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PhoneNumberKit: ced55861269312a5e3bc2ef82a58d6255b1c976a
+  pretty_animated_text: c6a3cbc54f52aeb3155d5f901b3efc8a9c7507b5
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   rive_common: 4743dbfd2911c99066547a3c6454681e0fa907df

@@ -51,7 +51,7 @@ class _HostUnirPageState extends State<HostUnirPage> {
                   child: Text(
                     "Hostear partida",
                     style: GoogleFonts.battambang(
-                        textStyle: TextStyle(fontSize: 32)),
+                        textStyle: TextStyle(fontSize: 28)),
                   ),
                 ),
               ),
@@ -59,81 +59,84 @@ class _HostUnirPageState extends State<HostUnirPage> {
             const SizedBox(
               height: 15,
             ),
-            Card(
-              elevation: 20,
-              shadowColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: InkWell(
-                onTap: () async {
-                  final enteredGameId = await showDialog<String>(
-                    context: context,
-                    builder: (context) {
-                      String input = '';
-                      return AlertDialog(
-                        title: Text('Ingrese código de la partida'),
-                        content: TextField(
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) => input = value,
-                          decoration:
-                              InputDecoration(hintText: 'Código de juego'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Card(
+                elevation: 20,
+                shadowColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: InkWell(
+                  onTap: () async {
+                    final enteredGameId = await showDialog<String>(
+                      context: context,
+                      builder: (context) {
+                        String input = '';
+                        return AlertDialog(
+                          title: Text('Ingrese código de la partida'),
+                          content: TextField(
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) => input = value,
+                            decoration:
+                                InputDecoration(hintText: 'Código de juego'),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(null),
+                              child: Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(context).pop(input.trim()),
+                              child: Text('Unirse'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (enteredGameId == null || enteredGameId.isEmpty) {
+                      // Usuario canceló o no ingresó nada
+                      return;
+                    }
+
+                    final currentUser = FirebaseAuth.instance.currentUser!;
+                    final photoUrl =
+                        await getProfilePictureUrl(currentUser.uid) ?? '';
+                    final player = Player(
+                      uid: currentUser.uid,
+                      name: currentUser.displayName ?? 'Anónimo',
+                      photoUrl: photoUrl,
+                    );
+
+                    try {
+                      await GameService().joinGame(enteredGameId, player);
+
+                      // Navegar a la sala de juego
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LobbyPage(gameId: enteredGameId),
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(null),
-                            child: Text('Cancelar'),
-                          ),
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop(input.trim()),
-                            child: Text('Unirse'),
-                          ),
-                        ],
                       );
-                    },
-                  );
-
-                  if (enteredGameId == null || enteredGameId.isEmpty) {
-                    // Usuario canceló o no ingresó nada
-                    return;
-                  }
-
-                  final currentUser = FirebaseAuth.instance.currentUser!;
-                  final photoUrl =
-                      await getProfilePictureUrl(currentUser.uid) ?? '';
-                  final player = Player(
-                    uid: currentUser.uid,
-                    name: currentUser.displayName ?? 'Anónimo',
-                    photoUrl: photoUrl,
-                  );
-
-                  try {
-                    await GameService().joinGame(enteredGameId, player);
-
-                    // Navegar a la sala de juego
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LobbyPage(gameId: enteredGameId),
-                      ),
-                    );
-                  } catch (e) {
-                    // Manejar error, por ejemplo mostrar SnackBar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Error al unirse a la partida: $e')),
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Text(
-                    "Unirse a una partida",
-                    style: GoogleFonts.battambang(
-                        textStyle: TextStyle(fontSize: 32)),
+                    } catch (e) {
+                      // Manejar error, por ejemplo mostrar SnackBar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Error al unirse a la partida: $e')),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(15),
+                    child: Text(
+                      "Unirse a una partida",
+                      style: GoogleFonts.battambang(
+                          textStyle: TextStyle(fontSize: 28)),
+                    ),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

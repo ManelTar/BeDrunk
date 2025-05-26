@@ -12,6 +12,7 @@ import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
+import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
 import 'package:proyecto_aa/services/games_service.dart';
 
@@ -89,9 +90,10 @@ class _HomePageState extends State<HomePage> {
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () => Navigator.pop(context),
+              leading: const Icon(Icons.support_agent_rounded),
+              title: const Text('Centro de soporte'),
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const HelpPage())),
             ),
             ListTile(
               leading: const Icon(Icons.search),

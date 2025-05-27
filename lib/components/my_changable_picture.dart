@@ -26,22 +26,44 @@ class _MyChangablePictureState extends State<MyChangablePicture> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        onProfileTaped();
-      },
+      onTap: onProfileTaped,
       child: Padding(
         padding: EdgeInsets.only(bottom: 13),
-        child: Container(
-          height: 200,
-          width: 200,
-          decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: pickedImage != null
-                  ? DecorationImage(
-                      fit: BoxFit.cover,
-                      image:
-                          Image.memory(pickedImage!, fit: BoxFit.cover).image)
-                  : null),
+        child: Stack(
+          alignment: Alignment.bottomLeft,
+          children: [
+            Container(
+              height: 200,
+              width: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: pickedImage != null
+                    ? DecorationImage(
+                        fit: BoxFit.cover,
+                        image:
+                            Image.memory(pickedImage!, fit: BoxFit.cover).image,
+                      )
+                    : null,
+                color: Colors.grey[300], // Color de fondo si no hay imagen
+              ),
+            ),
+            Positioned(
+              bottom: 1,
+              right: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                padding: EdgeInsets.all(6),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 class MySearchTextfield extends StatefulWidget {
   final Function(String)? onChanged;
-  const MySearchTextfield({super.key, required this.onChanged});
+  final Function(String)? onSubmitted;
+  const MySearchTextfield(
+      {super.key, required this.onChanged, required this.onSubmitted});
 
   @override
   State<MySearchTextfield> createState() => _MySearchTextfieldState();
@@ -22,6 +24,7 @@ class _MySearchTextfieldState extends State<MySearchTextfield> {
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(13)))),
         onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
       ),
     );
   }

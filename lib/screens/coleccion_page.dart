@@ -104,12 +104,6 @@ class _ColeccionDetallePageState extends State<ColeccionDetallePage> {
                         finalPadding: const EdgeInsets.only(bottom: 10),
                         baseColor:
                             Theme.of(context).colorScheme.surfaceContainerHigh,
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child: Image(
-                            image: AssetImage('lib/images/google.png'),
-                          ),
-                        ),
                         elevation: 2,
                         title: Text(juego.nombre),
                         subtitle: Text(

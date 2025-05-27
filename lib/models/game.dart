@@ -10,6 +10,7 @@ class Game {
   final String currentQuestionText;
   final int round;
   final String? resultUid;
+  final List<String> usedQuestionIds;
 
   Game({
     required this.id,
@@ -20,6 +21,7 @@ class Game {
     required this.currentQuestionText,
     required this.round,
     this.resultUid,
+    required this.usedQuestionIds,
   });
 
   factory Game.fromFirestore(DocumentSnapshot doc) {
@@ -38,6 +40,22 @@ class Game {
       currentQuestionText: data['currentQuestionText'],
       resultUid: data['resultUid'],
       players: players,
+      usedQuestionIds:
+          (data['usedQuestionIds'] as List?)?.whereType<String>().toList() ??
+              [],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'estado': estado,
+      'hostId': hostId,
+      'players': players.map((p) => p.toMap()).toList(),
+      'status': status,
+      'currentQuestionText': currentQuestionText,
+      'round': round,
+      'resultUid': resultUid,
+      'usedQuestionIds': usedQuestionIds,
+    };
   }
 }

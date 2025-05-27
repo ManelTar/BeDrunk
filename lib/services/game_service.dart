@@ -8,26 +8,41 @@ class GameService {
   final _games = FirebaseFirestore.instance.collection('games');
   final _questions = FirebaseFirestore.instance.collection('preguntas');
 
-  /// Devuelve una pregunta aleatoria del tipo "prefieres"
-  Future<String> getRandomPrefieresQuestion() async {
+  /// Devuelve una pregunta aleatoria del tipo "prefieres" que no se haya usado
+  Future<Map<String, dynamic>> getUniquePrefieresQuestion(
+      List<String> usedIds) async {
     final snapshot =
         await _questions.where('tipo', isEqualTo: 'prefieres').get();
 
-    if (snapshot.docs.isEmpty) {
-      return "No hay preguntas disponibles.";
+    final unused =
+        snapshot.docs.where((doc) => !usedIds.contains(doc.id)).toList();
+
+    if (unused.isEmpty) {
+      return {
+        'id': 'none',
+        'pregunta': 'Ya se usaron todas las preguntas disponibles.'
+      };
     }
 
-    final random = Random();
-    final doc = snapshot.docs[random.nextInt(snapshot.docs.length)];
-    return doc.data()['pregunta'] ?? "Pregunta no válida.";
+    final randomDoc = unused[Random().nextInt(unused.length)];
+    return {
+      'id': randomDoc.id,
+      'pregunta': randomDoc['pregunta'],
+    };
   }
 
-  /// Crea una nueva partida con una pregunta inicial
+  /// Crea una nueva partida con pregunta inicial
   Future<String> createGame(Player host) async {
-    final question = await getRandomPrefieresQuestion();
-    final gameId = await _generateUniqueGameCode();
+    final snapshot =
+        await _questions.where('tipo', isEqualTo: 'prefieres').get();
 
-    final gameDoc = _games.doc(gameId); // usamos .doc(id) en vez de .add()
+    if (snapshot.docs.isEmpty) throw Exception("No hay preguntas disponibles.");
+
+    final doc = snapshot.docs[Random().nextInt(snapshot.docs.length)];
+    final questionText = doc.data()['pregunta'] ?? "Pregunta no válida.";
+
+    final gameId = await _generateUniqueGameCode();
+    final gameDoc = _games.doc(gameId);
 
     await gameDoc.set({
       'estado': 'lobby',
@@ -35,7 +50,8 @@ class GameService {
       'status': 'waiting',
       'players': [host.toMap()],
       'round': 1,
-      'currentQuestionText': question,
+      'currentQuestionText': questionText,
+      'usedQuestionIds': [doc.id],
       'resultUid': null,
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -51,38 +67,42 @@ class GameService {
     });
   }
 
-  /// Comienza la partida (opcional si quieres forzar un nuevo comienzo)
-  Future<void> startGame(String gameId, String nextQuestion) async {
+  /// Comienza la partida
+  Future<void> startGame(String gameId) async {
     final gameRef = _games.doc(gameId);
     final gameSnap = await gameRef.get();
-    final data = gameSnap.data()!;
-    final players = (data['players'] as List)
-        .map((p) => {
-              ...p,
-              'hasVoted': false,
-              'voteTo': null,
-            })
-        .toList();
+    final game = Game.fromFirestore(gameSnap);
 
-    final newQuestion = await getRandomPrefieresQuestion();
+    // Obtener las preguntas ya usadas
+    final usedIds = game.usedQuestionIds;
+
+    // Obtener una nueva pregunta que no se haya usado
+    final next = await getUniquePrefieresQuestion(usedIds);
+    final newQuestionText = next['pregunta'] ?? 'Sin pregunta';
+    final newQuestionId = next['id'];
+
+    // Marcar todos los jugadores como no votados
+    final updatedPlayers = game.players
+        .map((p) => p.copyWith(hasVoted: false, voteTo: null))
+        .toList();
 
     await gameRef.update({
       'status': 'playing',
-      'round': data['round'] + 1,
-      'currentQuestionText': newQuestion,
+      'round': game.round + 1,
+      'currentQuestionText': newQuestionText,
       'resultUid': null,
-      'players': players,
+      'players': updatedPlayers.map((p) => p.toMap()).toList(),
+      'usedQuestionIds': [...usedIds, newQuestionId],
     });
   }
 
   /// Un jugador emite su voto
   Future<void> submitVote(
       String gameId, String voterUid, String votedUid) async {
-    final gameRef = FirebaseFirestore.instance.collection('games').doc(gameId);
+    final gameRef = _games.doc(gameId);
     final gameSnap = await gameRef.get();
     final game = Game.fromFirestore(gameSnap);
 
-    // Actualiza hasVoted del jugador que votó
     final updatedPlayers = game.players.map((p) {
       if (p.uid == voterUid) {
         return p.copyWith(hasVoted: true, voteTo: votedUid);
@@ -94,11 +114,9 @@ class GameService {
       'players': updatedPlayers.map((p) => p.toMap()).toList(),
     });
 
-    // Verifica si todos han votado
-    final allVoted = updatedPlayers.every((p) => p.hasVoted == true);
+    final allVoted = updatedPlayers.every((p) => p.hasVoted);
 
     if (allVoted) {
-      // Contar votos
       final votes = <String, int>{};
       for (final p in updatedPlayers) {
         if (p.voteTo != null) {
@@ -106,15 +124,15 @@ class GameService {
         }
       }
 
-      // Elegir UID con más votos
-      final resultUid =
-          votes.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+      final resultUid = votes.entries.isNotEmpty
+          ? votes.entries.reduce((a, b) => a.value >= b.value ? a : b).key
+          : null;
 
       await gameRef.update({'resultUid': resultUid});
     }
   }
 
-  /// Verifica si todos votaron, guarda resultados y avanza de ronda
+  /// Verifica votos y pasa de ronda
   Future<void> checkVotesAndAdvance(String gameId) async {
     final gameRef = _games.doc(gameId);
     final snapshot = await gameRef.get();
@@ -125,7 +143,6 @@ class GameService {
     final allVoted = players.every((p) => p['hasVoted'] == true);
 
     if (allVoted) {
-      // Calcular el jugador más votado
       Map<String, int> voteCounts = {};
       for (final player in players) {
         final voteTo = player['voteTo'];
@@ -138,19 +155,20 @@ class GameService {
           ? voteCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key
           : null;
 
-      // Preparar la siguiente ronda
       for (var p in players) {
         p['hasVoted'] = false;
         p['voteTo'] = null;
       }
 
-      final newQuestion = await getRandomPrefieresQuestion();
+      final usedIds = List<String>.from(data['usedQuestionIds'] ?? []);
+      final next = await getUniquePrefieresQuestion(usedIds);
 
       await gameRef.update({
         'resultUid': mostVoted,
         'round': data['round'] + 1,
         'players': players,
-        'currentQuestionText': newQuestion,
+        'currentQuestionText': next['pregunta'],
+        'usedQuestionIds': FieldValue.arrayUnion([next['id']]),
       });
     }
   }
@@ -161,8 +179,7 @@ class GameService {
     bool exists = true;
 
     do {
-      code = (random.nextInt(90000) + 10000)
-          .toString(); // genera entre 10000 y 99999
+      code = (random.nextInt(90000) + 10000).toString();
       final doc = await _games.doc(code).get();
       exists = doc.exists;
     } while (exists);

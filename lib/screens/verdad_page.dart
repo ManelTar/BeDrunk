@@ -17,6 +17,7 @@ class VerdadPage extends StatefulWidget {
 class _VerdadPageState extends State<VerdadPage> {
   final _random = Random();
   List<Preguntas> _retos = [];
+  List<Preguntas> _retosDisponibles = [];
   Preguntas? _retoActual;
   bool _loading = true;
 
@@ -48,8 +49,12 @@ class _VerdadPageState extends State<VerdadPage> {
           })
           .where((p) => p.tipo.toLowerCase() == 'verdad')
           .toList();
+
+      // Copiar todos los retos a la lista disponible
+      _retosDisponibles = List.from(_retos);
     } catch (_) {
       _retos = [];
+      _retosDisponibles = [];
     }
     _siguienteReto();
     setState(() => _loading = false);
@@ -57,14 +62,19 @@ class _VerdadPageState extends State<VerdadPage> {
 
   // 3) Elegir siguiente reto y avanzar turno de jugador
   void _siguienteReto() {
-    if (_retos.isEmpty) {
+    if (_retosDisponibles.isEmpty) {
+      // Reiniciar si ya se usaron todos
+      _retosDisponibles = List.from(_retos);
+    }
+
+    if (_retosDisponibles.isEmpty) {
       _retoActual =
           Preguntas(pregunta: 'No hay más preguntas.', tipo: 'verdad');
     } else {
-      _retoActual = _retos[_random.nextInt(_retos.length)];
+      final index = _random.nextInt(_retosDisponibles.length);
+      _retoActual = _retosDisponibles[index];
+      _retosDisponibles.removeAt(index);
     }
-    // jugador actual en turno
-    _turnoJugador = (_turnoJugador) % _jugadores.length;
   }
 
   // 4) Al tocar pantalla, actualizar reto y turno

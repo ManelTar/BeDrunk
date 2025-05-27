@@ -29,13 +29,12 @@ class _UserPageState extends State<UserPage> {
             const SizedBox(height: 20),
             TextField(
               decoration: const InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
+                border: UnderlineInputBorder(),
                 hintText: 'Nombre de usuario',
               ),
               controller: TextEditingController(
-                text: FirebaseAuth.instance.currentUser!.displayName ?? '',
+                text: FirebaseAuth.instance.currentUser!.displayName ??
+                    'usuario$usuario',
               ),
               onChanged: (value) {
                 nuevoNombre = value;

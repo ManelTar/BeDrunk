@@ -15,6 +15,7 @@ import 'package:proyecto_aa/screens/games_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
 import 'package:proyecto_aa/services/games_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -73,44 +74,53 @@ class _HomePageState extends State<HomePage> {
       childDecoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(16))),
       drawer: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            const SizedBox(height: 24),
-            const MyProfilePicture(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  FirebaseAuth.instance.currentUser!.displayName ??
-                      'Usuario$usuario',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const SizedBox(height: 24),
+                  const MyProfilePicture(),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        FirebaseAuth.instance.currentUser!.displayName ??
+                            'Usuario$usuario',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.support_agent_rounded),
+                    title: const Text('Centro de soporte'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const HelpPage())),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.search),
+                    title: const Text('Buscar'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const SearchPage())),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.favorite),
+                    title: const Text('Favoritos'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const FavPage())),
+                  ),
+                ],
               ),
             ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.support_agent_rounded),
-              title: const Text('Centro de soporte'),
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const HelpPage())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.search),
-              title: const Text('Buscar'),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SearchPage())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('Favoritos'),
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const FavPage())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar sesión'),
-              onTap: cerrarSesion,
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Cerrar sesión'),
+                onTap: cerrarSesion,
+              ),
             ),
           ],
         ),

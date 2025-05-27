@@ -85,7 +85,7 @@ class _NamesPageState extends State<NamesPage> {
                   controller: values.textEditingController,
                   focusNode: values.focusNode,
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(
+                    border: UnderlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     hintText: values.tags.isEmpty

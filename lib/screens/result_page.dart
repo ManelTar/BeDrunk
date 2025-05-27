@@ -46,9 +46,7 @@ class ResultPage extends StatelessWidget {
                 if (isHost)
                   ElevatedButton(
                     onPressed: () async {
-                      final nextQuestion =
-                          await GameService().getRandomPrefieresQuestion();
-                      await GameService().startGame(game.id, nextQuestion);
+                      await GameService().startGame(game.id);
                     },
                     child: Text("Siguiente Ronda"),
                   )

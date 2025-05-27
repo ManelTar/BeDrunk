@@ -37,6 +37,7 @@ class HelpPage extends StatelessWidget {
       appBar: AppBar(title: Text('Centro de soporte')),
       body: ListView(
         children: [
+          const SizedBox(height: 10),
           Padding(
               padding: const EdgeInsets.only(left: 15),
               child: Text("Ayuda y comentarios",
@@ -126,6 +127,41 @@ class HelpPage extends StatelessWidget {
                       title: Text('Términos de uso'),
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(builder: (_) => TermsPage()))),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Text(
+                "Apóyame",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              )),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Card(
+              elevation: 20,
+              shadowColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.coffee),
+                    title: Text('¡Comprame un café!'),
+                    onTap: () async {
+                      final Uri url =
+                          Uri.parse('https://buymeacoffee.com/maneltarazona');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('No se pudo abrir el enlace')),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),

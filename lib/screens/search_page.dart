@@ -11,7 +11,8 @@ import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_search_textfield.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/models/juego.dart';
-import 'package:proyecto_aa/screens/games_page.dart'; // Asegúrate de importar tu modelo
+import 'package:proyecto_aa/screens/games_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -23,6 +24,28 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final _advancedDrawerController = AdvancedDrawerController();
   String nombreJuego = "";
+  List<String> recentSearches = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadRecentSearches();
+  }
+
+  void loadRecentSearches() async {
+    final searches = await getRecentSearches();
+    setState(() {
+      recentSearches = searches;
+    });
+  }
+
+  void onSearch(String query) async {
+    await saveSearch(query);
+    loadRecentSearches();
+    setState(() {
+      nombreJuego = query;
+    });
+  }
 
   void cerrarSesion() async {
     await FirebaseAuth.instance.signOut();
@@ -53,7 +76,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  FirebaseAuth.instance.currentUser!.displayName ?? 'Usuario',
+                  FirebaseAuth.instance.currentUser?.displayName ?? 'Usuario',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
@@ -67,7 +90,7 @@ class _SearchPageState extends State<SearchPage> {
             ListTile(
               leading: const Icon(Icons.search),
               title: const Text('Buscar'),
-              onTap: () => Navigator.push(
+              onTap: () => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const SearchPage()),
               ),
@@ -113,13 +136,65 @@ class _SearchPageState extends State<SearchPage> {
                   nombreJuego = value;
                 });
               },
+              onSubmitted: (value) {
+                onSearch(value);
+              },
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
+
+            // Búsquedas recientes
+            if (recentSearches.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Búsquedas recientes:",
+                      style: Theme.of(context).textTheme.titleMedium),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: recentSearches.map((query) {
+                    return GestureDetector(
+                      onTap: () => onSearch(query),
+                      child: Chip(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceTint,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        label: Text(query,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15)),
+                        deleteIcon: const Icon(Icons.close),
+                        onDeleted: () => removeSearch(query),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: const Divider(),
+              ),
+              const SizedBox(height: 10),
+            ],
+            // Resultados
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream:
                     FirebaseFirestore.instance.collection("juegos").snapshots(),
                 builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(
+                        child: Text('Error al cargar los juegos'));
+                  }
+
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
                       child: LoadingAnimationWidget.stretchedDots(
@@ -139,18 +214,20 @@ class _SearchPageState extends State<SearchPage> {
                       .toList();
 
                   return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     itemCount: juegos.length,
                     itemBuilder: (context, index) {
                       final juego = juegos[index];
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         child: ExpansionTileCard(
                           initialPadding: const EdgeInsets.only(bottom: 10),
                           finalPadding: const EdgeInsets.only(bottom: 10),
                           initialElevation: 1,
                           elevation: 2,
                           title: Text(juego.nombre,
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(
                             'Jugadores: ${juego.jugadoresMax == -1 ? "" : "2"}${juego.jugadoresMax == -1 ? "" : "-"}${juego.jugadoresMax == -1 ? "Grupos" : juego.jugadoresMax}',
                             style: TextStyle(color: Colors.grey[700]),
@@ -250,5 +327,36 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ),
     );
+  }
+
+  Future<void> saveSearch(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> searches = prefs.getStringList('recent_searches') ?? [];
+
+    searches.remove(query);
+    searches.insert(0, query);
+
+    if (searches.length > 10) {
+      searches = searches.sublist(0, 10);
+    }
+
+    await prefs.setStringList('recent_searches', searches);
+  }
+
+  Future<List<String>> getRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('recent_searches') ?? [];
+  }
+
+  void removeSearch(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> searches = prefs.getStringList('recent_searches') ?? [];
+
+    searches.remove(query);
+    await prefs.setStringList('recent_searches', searches);
+
+    setState(() {
+      recentSearches = searches;
+    });
   }
 }

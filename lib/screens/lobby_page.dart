@@ -68,9 +68,7 @@ class _LobbyPageState extends State<LobbyPage> {
               if (isHost)
                 ElevatedButton(
                   onPressed: () async {
-                    final question =
-                        await GameService().getRandomPrefieresQuestion();
-                    await GameService().startGame(game.id, question);
+                    await GameService().startGame(game.id);
 
                     // El resto de jugadores cambiarán automáticamente gracias al StreamBuilder
                     // El host también es redirigido por la lógica común

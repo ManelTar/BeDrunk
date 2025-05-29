@@ -43,7 +43,7 @@ class _MyProfilePictureState extends State<MyDrawerPicture> {
             color: Colors.grey[300], // Placeholder color
           ),
           child: pickedImage == null
-              ? const Icon(Icons.person, size: 50, color: Colors.white)
+              ? const Icon(Icons.person, size: 35, color: Colors.white)
               : null,
         ),
       ),

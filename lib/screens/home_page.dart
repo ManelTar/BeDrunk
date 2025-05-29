@@ -9,10 +9,12 @@ import 'package:proyecto_aa/components/my_button_fav.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_home_card.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
+import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
+import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
 import 'package:proyecto_aa/services/games_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -100,25 +102,32 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (_) => const HelpPage())),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.search),
-                    title: const Text('Buscar'),
+                    leading: const Icon(Icons.policy_rounded),
+                    title: const Text('Información legal'),
                     onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const SearchPage())),
+                        MaterialPageRoute(builder: (_) => const LegalPage())),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.favorite),
-                    title: const Text('Favoritos'),
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const FavPage())),
-                  ),
+                  RateAppButton()
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Cerrar sesión'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                tileColor: Theme.of(context).colorScheme.error,
+                leading: Icon(
+                  Icons.logout,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+                title: Text(
+                  'Cerrar sesión',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onError,
+                      fontWeight: FontWeight.bold),
+                ),
                 onTap: cerrarSesion,
               ),
             ),

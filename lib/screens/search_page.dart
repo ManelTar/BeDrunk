@@ -169,7 +169,10 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         label: Text(query,
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15)),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color:
+                                    Theme.of(context).colorScheme.onSurface)),
                         deleteIcon: const Icon(Icons.close),
                         onDeleted: () => removeSearch(query),
                       ),

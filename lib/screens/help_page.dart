@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_aa/screens/privacy_page.dart';
 import 'package:proyecto_aa/screens/terms_page.dart';
+import 'package:proyecto_aa/screens/themes_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpPage extends StatelessWidget {
@@ -38,6 +39,31 @@ class HelpPage extends StatelessWidget {
       body: ListView(
         children: [
           const SizedBox(height: 10),
+          // Padding(
+          //     padding: const EdgeInsets.only(left: 15),
+          //     child: Text("Personalización",
+          //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          //   child: Card(
+          //     elevation: 20,
+          //     shadowColor:
+          //         Theme.of(context).colorScheme.surfaceContainerHighest,
+          //     child: Column(
+          //       children: [
+          //         ListTile(
+          //           leading: Icon(Icons.edit),
+          //           title: Text('Cambiar el tema'),
+          //           onTap: () => Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                   builder: (_) => const ThemeSettingsPage())),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(height: 20),
           Padding(
               padding: const EdgeInsets.only(left: 15),
               child: Text("Ayuda y comentarios",
@@ -94,39 +120,6 @@ class HelpPage extends StatelessWidget {
                           'Hola equipo Drunkinator, quería comentarles que...',
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                "Legal",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              )),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Card(
-              elevation: 20,
-              shadowColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.privacy_tip),
-                    title: Text('Política de privacidad'),
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => PrivacyPage())),
-                  ),
-                  Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Divider()),
-                  ListTile(
-                      leading: Icon(Icons.description),
-                      title: Text('Términos de uso'),
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => TermsPage()))),
                 ],
               ),
             ),

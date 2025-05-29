@@ -127,16 +127,6 @@ class _LoginPageState extends State<LoginPage> {
               return null;
             },
           ),
-          LoginProvider(
-            icon: FontAwesomeIcons.apple,
-            label: 'Apple',
-            callback: () async {
-              debugPrint('start google sign in');
-              //await Future.delayed(loginTime);
-              debugPrint('stop google sign in');
-              return null;
-            },
-          ),
         ],
       ),
     );

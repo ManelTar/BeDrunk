@@ -9,8 +9,11 @@ import 'package:proyecto_aa/components/my_card_picture.dart';
 import 'package:proyecto_aa/components/my_coleccion_picture.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
+import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/coleccion_page.dart';
+import 'package:proyecto_aa/screens/help_page.dart';
+import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
@@ -23,6 +26,7 @@ class FavPage extends StatefulWidget {
 }
 
 class _FavPageState extends State<FavPage> {
+  final usuario = FirebaseAuth.instance.currentUser!.uid;
   late Future<List<Map<String, dynamic>>> _coleccionesFuture;
   final _advancedDrawerController = AdvancedDrawerController();
 
@@ -101,46 +105,60 @@ class _FavPageState extends State<FavPage> {
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
       drawer: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            const SizedBox(height: 24),
-            const MyProfilePicture(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  FirebaseAuth.instance.currentUser!.displayName ?? 'Usuario',
-                  style: Theme.of(context).textTheme.bodyLarge,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const SizedBox(height: 24),
+                  const MyProfilePicture(),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        FirebaseAuth.instance.currentUser!.displayName ??
+                            'Usuario$usuario',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.support_agent_rounded),
+                    title: const Text('Centro de soporte'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const HelpPage())),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.policy_rounded),
+                    title: const Text('Información legal'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const LegalPage())),
+                  ),
+                  RateAppButton()
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
+                tileColor: Theme.of(context).colorScheme.error,
+                leading: Icon(
+                  Icons.logout,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+                title: Text(
+                  'Cerrar sesión',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onError,
+                      fontWeight: FontWeight.bold),
+                ),
+                onTap: cerrarSesion,
               ),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.search),
-              title: const Text('Buscar'),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SearchPage()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder_special),
-              title: const Text('Colecciones'),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FavPage()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar sesión'),
-              onTap: cerrarSesion,
             ),
           ],
         ),

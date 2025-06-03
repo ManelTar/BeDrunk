@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:proyecto_aa/components/my_changable_picture.dart';
-import 'package:proyecto_aa/models/user_data_notifier.dart';
+import 'package:proyecto_aa/screens/home_page.dart';
+import 'package:proyecto_aa/screens/main_page.dart';
 
-class UserPage extends StatefulWidget {
-  const UserPage({super.key});
+class FirsttimeUserPage extends StatefulWidget {
+  const FirsttimeUserPage({super.key});
 
   @override
-  State<UserPage> createState() => _UserPageState();
+  State<FirsttimeUserPage> createState() => _FirsttimeUserPageState();
 }
 
-class _UserPageState extends State<UserPage> {
+class _FirsttimeUserPageState extends State<FirsttimeUserPage> {
   String nuevoNombre = FirebaseAuth.instance.currentUser!.displayName ?? '';
   String nuevoUsername = '';
 
@@ -106,11 +106,15 @@ class _UserPageState extends State<UserPage> {
       await userRef.doc(uid).set({
         'username': nuevoUsername,
         'nombre': nuevoNombre,
+        'profileCompleted': true
       }, SetOptions(merge: true));
 
       await FirebaseAuth.instance.currentUser!.reload();
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => MainPage()),
+      );
     } catch (e) {
       print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(

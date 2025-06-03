@@ -46,6 +46,9 @@ class _MyChangablePictureState extends State<MyChangablePicture> {
                     : null,
                 color: Colors.grey[300], // Color de fondo si no hay imagen
               ),
+              child: pickedImage == null
+                  ? const Icon(Icons.person, size: 200, color: Colors.white)
+                  : null,
             ),
             Positioned(
               bottom: 1,

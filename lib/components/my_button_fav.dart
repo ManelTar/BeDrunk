@@ -164,6 +164,15 @@ Future<void> mostrarDialogoColecciones(
                       setState(() {}); // Refresca la lista
                     },
                   ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 70),
+                    child: ElevatedButton(
+                      child: const Text('Cerrar'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

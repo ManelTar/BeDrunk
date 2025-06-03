@@ -8,10 +8,13 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/components/my_button_fav.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
+import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/components/my_search_textfield.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
+import 'package:proyecto_aa/screens/help_page.dart';
+import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchPage extends StatefulWidget {
@@ -22,14 +25,24 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final usuario = FirebaseAuth.instance.currentUser!.uid;
   final _advancedDrawerController = AdvancedDrawerController();
   String nombreJuego = "";
   List<String> recentSearches = [];
+  String userName = "";
 
   @override
   void initState() {
     super.initState();
     loadRecentSearches();
+    inicializarDatosUsuario();
+  }
+
+  Future<void> inicializarDatosUsuario() async {
+    final username = await obtenerUsername();
+    setState(() {
+      userName = username ?? '';
+    });
   }
 
   void loadRecentSearches() async {
@@ -67,46 +80,60 @@ class _SearchPageState extends State<SearchPage> {
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
       drawer: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            const SizedBox(height: 24),
-            const MyProfilePicture(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  FirebaseAuth.instance.currentUser?.displayName ?? 'Usuario',
-                  style: Theme.of(context).textTheme.bodyLarge,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const SizedBox(height: 24),
+                  const MyProfilePicture(),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        userName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.support_agent_rounded),
+                    title: const Text('Centro de soporte'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const HelpPage())),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.policy_rounded),
+                    title: const Text('Información legal'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const LegalPage())),
+                  ),
+                  RateAppButton()
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
+                tileColor: Theme.of(context).colorScheme.error,
+                leading: Icon(
+                  Icons.logout,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+                title: Text(
+                  'Cerrar sesión',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onError,
+                      fontWeight: FontWeight.bold),
+                ),
+                onTap: cerrarSesion,
               ),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.search),
-              title: const Text('Buscar'),
-              onTap: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const SearchPage()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('Favoritos'),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FavPage()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar sesión'),
-              onTap: cerrarSesion,
             ),
           ],
         ),
@@ -361,5 +388,16 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       recentSearches = searches;
     });
+  }
+
+  Future<String?> obtenerUsername() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (doc.exists) {
+      return doc.data()?['username'];
+    }
+    return null;
   }
 }

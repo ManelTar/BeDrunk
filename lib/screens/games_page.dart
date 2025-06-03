@@ -103,7 +103,7 @@ class _GamesPageState extends State<GamesPage> {
                   )),
         );
         break;
-      case 'Quien es más probable qué':
+      case 'Quién es más probable que':
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => HostUnirPage()),

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/models/player.dart';
 import '../models/game.dart';
 import '../services/game_service.dart';
@@ -17,7 +18,11 @@ class ResultPage extends StatelessWidget {
       stream: gameRef.snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData)
-          return Scaffold(body: Center(child: CircularProgressIndicator()));
+          return Scaffold(
+              body: Center(
+            child: LoadingAnimationWidget.stretchedDots(
+                color: Theme.of(context).colorScheme.primary, size: 75),
+          ));
         final game = Game.fromFirestore(snapshot.data!);
         final resultPlayer = game.players.firstWhere(
             (p) => p.uid == game.resultUid,

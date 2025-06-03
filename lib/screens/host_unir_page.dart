@@ -18,6 +18,21 @@ class _HostUnirPageState extends State<HostUnirPage> {
   StorageService storage = StorageService();
   final currentUser = FirebaseAuth.instance.currentUser!;
   String gameId = "";
+  String userName = "";
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    inicializarDatosUsuario();
+  }
+
+  Future<void> inicializarDatosUsuario() async {
+    final username = await obtenerUsername();
+    setState(() {
+      userName = username ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +64,7 @@ class _HostUnirPageState extends State<HostUnirPage> {
                 child: Padding(
                   padding: EdgeInsets.all(15),
                   child: Text(
-                    "Hostear partida",
+                    "Crear una partida",
                     style: GoogleFonts.battambang(
                         textStyle: TextStyle(fontSize: 28)),
                   ),
@@ -104,7 +119,7 @@ class _HostUnirPageState extends State<HostUnirPage> {
                         await getProfilePictureUrl(currentUser.uid) ?? '';
                     final player = Player(
                       uid: currentUser.uid,
-                      name: currentUser.displayName ?? 'Anónimo',
+                      name: userName,
                       photoUrl: photoUrl,
                     );
 
@@ -145,10 +160,8 @@ class _HostUnirPageState extends State<HostUnirPage> {
 
   Future<void> hostearPartida() async {
     final photoUrl = await getProfilePictureUrl(currentUser.uid) ?? '';
-    final hostPlayer = Player(
-        uid: currentUser.uid,
-        name: currentUser.displayName ?? 'Anónimo',
-        photoUrl: photoUrl);
+    final hostPlayer =
+        Player(uid: currentUser.uid, name: userName, photoUrl: photoUrl);
 
     gameId = await GameService().createGame(hostPlayer);
   }
@@ -163,5 +176,16 @@ class _HostUnirPageState extends State<HostUnirPage> {
       print('Error al obtener URL de la imagen: $e');
       return null;
     }
+  }
+
+  Future<String?> obtenerUsername() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (doc.exists) {
+      return doc.data()?['username'];
+    }
+    return null;
   }
 }

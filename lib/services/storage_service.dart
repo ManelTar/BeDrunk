@@ -46,4 +46,14 @@ class StorageService {
       return null;
     }
   }
+
+  Future<void> deleteFile(String fileName) async {
+    try {
+      final imageRef = ref.child(fileName);
+      await imageRef.delete();
+      print('Archivo eliminado con éxito.');
+    } catch (e) {
+      print('Error al eliminar el archivo: $e');
+    }
+  }
 }

@@ -5,17 +5,20 @@ import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:proyecto_aa/components/my_button_fav.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_home_card.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
+import 'package:proyecto_aa/models/user_data_notifier.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
+import 'package:proyecto_aa/screens/settings_page.dart';
 import 'package:proyecto_aa/services/games_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   final usuario = FirebaseAuth.instance.currentUser!.uid;
   late Future<List<Juego>> _juegosFuture;
   final _advancedDrawerController = AdvancedDrawerController();
+  String userName = "";
 
   String? _categoriaSeleccionada;
 
@@ -37,6 +41,14 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _juegosFuture = obtenerJuegos();
+    inicializarDatosUsuario();
+  }
+
+  Future<void> inicializarDatosUsuario() async {
+    final username = await obtenerUsername();
+    setState(() {
+      userName = username ?? '';
+    });
   }
 
   Future<List<Juego>> obtenerJuegos() async {
@@ -62,9 +74,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void cerrarSesion() => FirebaseAuth.instance.signOut();
-
   @override
   Widget build(BuildContext context) {
+    final userData = Provider.of<UserDataNotifier>(context);
     final categorias = ["Jugable", "Grupos", "Dados", "Cartas", "Consolas"];
 
     return AdvancedDrawer(
@@ -88,18 +100,20 @@ class _HomePageState extends State<HomePage> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        FirebaseAuth.instance.currentUser!.displayName ??
-                            'Usuario$usuario',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        userName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
                       ),
                     ),
                   ),
                   const Divider(),
                   ListTile(
-                    leading: const Icon(Icons.support_agent_rounded),
-                    title: const Text('Centro de soporte'),
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const HelpPage())),
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Ajustes'),
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsPage())),
                   ),
                   ListTile(
                     leading: const Icon(Icons.policy_rounded),
@@ -453,5 +467,16 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Future<String?> obtenerUsername() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (doc.exists) {
+      return doc.data()?['username'];
+    }
+    return null;
   }
 }

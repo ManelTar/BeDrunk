@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/models/game.dart';
 import 'package:proyecto_aa/screens/prefieres_page.dart';
 import 'package:proyecto_aa/services/game_service.dart';
@@ -27,7 +28,9 @@ class _LobbyPageState extends State<LobbyPage> {
     return StreamBuilder<DocumentSnapshot>(
       stream: gameRef.snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return CircularProgressIndicator();
+        if (!snapshot.hasData)
+          return LoadingAnimationWidget.stretchedDots(
+              color: Theme.of(context).colorScheme.primary, size: 75);
 
         final game = Game.fromFirestore(snapshot.data!);
         final isHost = game.hostId == FirebaseAuth.instance.currentUser!.uid;
@@ -56,7 +59,15 @@ class _LobbyPageState extends State<LobbyPage> {
                 style:
                     GoogleFonts.battambang(textStyle: TextStyle(fontSize: 40)),
               ),
-              Text('Jugadores conectados:'),
+              Padding(
+                padding: EdgeInsets.only(left: 17),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Jugadores conectados:')),
+              ),
+              SizedBox(
+                height: 12,
+              ),
               ...game.players.map((p) => Align(
                     alignment: Alignment.center,
                     child: ListTile(

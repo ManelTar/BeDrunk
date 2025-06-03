@@ -36,13 +36,19 @@ class _MyProfilePictureState extends State<MyProfilePicture> {
           height: 100,
           width: 100,
           decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: pickedImage != null
-                  ? DecorationImage(
-                      fit: BoxFit.scaleDown,
-                      image: Image.memory(pickedImage!, fit: BoxFit.scaleDown)
-                          .image)
-                  : null),
+            shape: BoxShape.circle,
+            image: pickedImage != null
+                ? DecorationImage(
+                    fit: BoxFit.contain,
+                    image:
+                        Image.memory(pickedImage!, fit: BoxFit.contain).image,
+                  )
+                : null,
+            color: Colors.grey[300], // Placeholder color
+          ),
+          child: pickedImage == null
+              ? const Icon(Icons.person, size: 100, color: Colors.white)
+              : null,
         ),
       ),
     );

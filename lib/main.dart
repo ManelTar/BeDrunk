@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_aa/models/user_data_notifier.dart';
 import 'package:proyecto_aa/screens/auth_page.dart';
 import 'package:proyecto_aa/utils/my_themecode.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +24,12 @@ void main() async {
   }
 
   print('✅ Preguntas y retos añadidos con éxito.');
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => UserDataNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

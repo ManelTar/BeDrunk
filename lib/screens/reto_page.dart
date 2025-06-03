@@ -3,6 +3,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pretty_animated_text/pretty_animated_text.dart';
 import 'package:proyecto_aa/components/my_pulse_animated_text.dart';
 import 'package:proyecto_aa/models/preguntas.dart';
@@ -99,7 +100,8 @@ class _RetoPageState extends State<RetoPage> {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: _loading
-              ? const CircularProgressIndicator()
+              ? LoadingAnimationWidget.stretchedDots(
+                  color: Theme.of(context).colorScheme.primary, size: 75)
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,

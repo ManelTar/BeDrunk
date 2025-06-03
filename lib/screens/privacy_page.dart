@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class PrivacyPage extends StatelessWidget {
   @override
@@ -20,7 +21,10 @@ class PrivacyPage extends StatelessWidget {
               ),
             );
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: LoadingAnimationWidget.stretchedDots(
+                  color: Theme.of(context).colorScheme.primary, size: 75),
+            );
           }
         },
       ),

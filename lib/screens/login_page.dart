@@ -15,7 +15,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final userController = TextEditingController();
-
   final passController = TextEditingController();
 
   Future<String?> iniciarSesion(LoginData data) async {

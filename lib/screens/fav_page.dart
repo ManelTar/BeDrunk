@@ -30,7 +30,6 @@ class FavPage extends StatefulWidget {
 
 class _FavPageState extends State<FavPage> {
   final usuario = FirebaseAuth.instance.currentUser!.uid;
-  final usuario = FirebaseAuth.instance.currentUser!.uid;
   late Future<List<Map<String, dynamic>>> _coleccionesFuture;
   final _advancedDrawerController = AdvancedDrawerController();
   String userName = "";

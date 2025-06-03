@@ -29,7 +29,6 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final usuario = FirebaseAuth.instance.currentUser!.uid;
-  final usuario = FirebaseAuth.instance.currentUser!.uid;
   final _advancedDrawerController = AdvancedDrawerController();
   String nombreJuego = "";
   List<String> recentSearches = [];

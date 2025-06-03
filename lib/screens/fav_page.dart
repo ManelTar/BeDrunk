@@ -10,8 +10,11 @@ import 'package:proyecto_aa/components/my_coleccion_picture.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_rateup_button.dart';
+import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/coleccion_page.dart';
+import 'package:proyecto_aa/screens/help_page.dart';
+import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/search_page.dart';
@@ -26,6 +29,7 @@ class FavPage extends StatefulWidget {
 }
 
 class _FavPageState extends State<FavPage> {
+  final usuario = FirebaseAuth.instance.currentUser!.uid;
   final usuario = FirebaseAuth.instance.currentUser!.uid;
   late Future<List<Map<String, dynamic>>> _coleccionesFuture;
   final _advancedDrawerController = AdvancedDrawerController();

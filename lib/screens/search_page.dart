@@ -9,10 +9,13 @@ import 'package:proyecto_aa/components/my_button_fav.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_rateup_button.dart';
+import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/components/my_search_textfield.dart';
 import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
+import 'package:proyecto_aa/screens/help_page.dart';
+import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/legal_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +28,7 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final usuario = FirebaseAuth.instance.currentUser!.uid;
   final usuario = FirebaseAuth.instance.currentUser!.uid;
   final _advancedDrawerController = AdvancedDrawerController();
   String nombreJuego = "";

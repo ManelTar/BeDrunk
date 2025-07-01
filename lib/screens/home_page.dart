@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_aa/components/ad_helper.dart';
@@ -28,6 +29,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  BannerAd? _bannerAd;
+  RewardedAd? _rewardedAd;
   final usuario = FirebaseAuth.instance.currentUser!.uid;
   late Future<List<Juego>> _juegosFuture;
   final _advancedDrawerController = AdvancedDrawerController();
@@ -40,6 +43,53 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _juegosFuture = obtenerJuegos();
     inicializarDatosUsuario();
+    BannerAd(
+        adUnitId: AdHelper.bannerAdUnitId,
+        request: const AdRequest(),
+        size: AdSize.banner,
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            setState(() {
+              _bannerAd = ad as BannerAd;
+            });
+          },
+          onAdFailedToLoad: (ad, error) {
+            print('BannerAd failed to load: $error');
+            ad.dispose();
+          },
+        )).load();
+    _loadRewardedAd();
+  }
+
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: AdHelper.rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdShowedFullScreenContent: (ad) {
+              print('RewardedAd showed full screen content.');
+            },
+            onAdDismissedFullScreenContent: (ad) {
+              print('RewardedAd dismissed full screen content.');
+              ad.dispose();
+              _loadRewardedAd(); // Load a new ad after the current one is dismissed
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              print('RewardedAd failed to show full screen content: $error');
+              ad.dispose();
+            },
+          );
+          setState(() {
+            _rewardedAd = ad;
+          });
+        },
+        onAdFailedToLoad: (error) {
+          print('RewardedAd failed to load: $error');
+        },
+      ),
+    );
   }
 
   Future<void> inicializarDatosUsuario() async {
@@ -122,8 +172,42 @@ class _HomePageState extends State<HomePage> {
                   ListTile(
                     leading: const Icon(Icons.bar_chart_sharp),
                     title: const Text('Estadísticas'),
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const StatsPage())),
+                    onTap: () => showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text("¿Quieres ver las estadísticas?"),
+                            content: Text(
+                                "Puedes ver las estadísticas de tus partidas jugadas."),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Cancelar"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  final navigator = Navigator.of(context);
+                                  navigator.pop(); // Cierra el diálogo primero
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    _rewardedAd?.show(
+                                      onUserEarnedReward: (_, reward) {
+                                        navigator.push(
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const StatsPage()),
+                                        );
+                                      },
+                                    );
+                                  });
+                                },
+                                child: Text("Ver anuncio"),
+                              ),
+                            ],
+                          );
+                        }),
                   ),
                   RateAppButton()
                 ],
@@ -172,222 +256,93 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 10),
           child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // --- CATEGORÍAS ---
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text("Categorías",
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(height: 15),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  children: [
-                    if (_categoriaSeleccionada != null)
-                      MyHomeCard(
-                        nombreCard: "Quitar filtro",
-                        isSelected: false,
-                        onTap: () =>
-                            setState(() => _categoriaSeleccionada = null),
-                      ),
-                    for (final cat in categorias)
-                      MyHomeCard(
-                        nombreCard: cat,
-                        isSelected: _categoriaSeleccionada == cat,
-                        onTap: () =>
-                            setState(() => _categoriaSeleccionada = cat),
-                      ),
-                  ],
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              // --- CATEGORÍAS ---
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: Text("Categorías",
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 15),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    children: [
+                      if (_categoriaSeleccionada != null)
+                        MyHomeCard(
+                          nombreCard: "Quitar filtro",
+                          isSelected: false,
+                          onTap: () =>
+                              setState(() => _categoriaSeleccionada = null),
+                        ),
+                      for (final cat in categorias)
+                        MyHomeCard(
+                          nombreCard: cat,
+                          isSelected: _categoriaSeleccionada == cat,
+                          onTap: () =>
+                              setState(() => _categoriaSeleccionada = cat),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // --- DESTACADO ---
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, bottom: 8),
-              child: Text("Destacado",
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall!
-                      .copyWith(fontWeight: FontWeight.bold)),
-            ),
-            FutureBuilder<Juego?>(
-              future: obtenerJuegoDelDia(),
-              builder: (context, snapDest) {
-                if (!snapDest.hasData) {
-                  return Center(
-                    child: LoadingAnimationWidget.stretchedDots(
-                        color: Theme.of(context).colorScheme.primary, size: 75),
-                  );
-                }
-                final juego = snapDest.data!;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Stack(children: [
-                      Container(
-                        height: MediaQuery.of(context).size.height * 0.28,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: NetworkImage(juego.foto),
-                                fit: BoxFit.cover)),
-                      ),
-                      Positioned.fill(
-                          child:
-                              Container(color: Colors.black.withOpacity(0.4))),
-                      Positioned(
-                        left: 20,
-                        bottom: 20,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(juego.nombre,
-                                style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                if (juego.jugable) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => GamesPage(
-                                        juego: juego.tipo,
-                                        titulo: juego.nombre,
-                                        gif: juego.gif,
-                                        reglas: juego.reglas,
-                                        mostrar: true,
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => giffy.GiffyDialog.image(
-                                      Image.network(juego.gif,
-                                          height: 200, fit: BoxFit.cover),
-                                      title: Text(juego.nombre,
-                                          textAlign: TextAlign.center),
-                                      content: SingleChildScrollView(
-                                        child: Text(juego.reglas,
-                                            textAlign: TextAlign.center),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text('OK')),
-                                      ],
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: Icon(
-                                juego.jugable
-                                    ? Icons.play_arrow_rounded
-                                    : Icons.info,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              label: Text(juego.jugable ? "Jugar" : "Info"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.surfaceTint,
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.onSurface,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                            )
-                          ],
+              // --- DESTACADO ---
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, bottom: 8),
+                child: Text("Destacado",
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall!
+                        .copyWith(fontWeight: FontWeight.bold)),
+              ),
+              FutureBuilder<Juego?>(
+                future: obtenerJuegoDelDia(),
+                builder: (context, snapDest) {
+                  if (!snapDest.hasData) {
+                    return Center(
+                      child: LoadingAnimationWidget.stretchedDots(
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 75),
+                    );
+                  }
+                  final juego = snapDest.data!;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Stack(children: [
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.28,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: NetworkImage(juego.foto),
+                                  fit: BoxFit.cover)),
                         ),
-                      )
-                    ]),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // --- TODOS LOS JUEGOS ---
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text("Todos los juegos",
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(height: 5),
-            FutureBuilder<List<Juego>>(
-              future: _juegosFuture,
-              builder: (context, snapAll) {
-                if (snapAll.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: LoadingAnimationWidget.stretchedDots(
-                        color: Theme.of(context).colorScheme.primary, size: 75),
-                  );
-                }
-                if (snapAll.hasError) {
-                  return Center(child: Text('Error: ${snapAll.error}'));
-                }
-                final juegos = snapAll.data ?? [];
-                final juegosFiltrados = _categoriaSeleccionada == null
-                    ? juegos
-                    : juegos.where((j) {
-                        if (_categoriaSeleccionada == "Jugable")
-                          return j.jugable;
-                        return j.tipo == _categoriaSeleccionada;
-                      }).toList();
-
-                if (juegosFiltrados.isEmpty) {
-                  return const Center(
-                      child:
-                          Text('No hay juegos disponibles en esta categoría.'));
-                }
-
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(14),
-                    itemCount: juegosFiltrados.length,
-                    itemBuilder: (context, i) {
-                      final juego = juegosFiltrados[i];
-                      return ExpansionTileCard(
-                        animateTrailing: true,
-                        initialPadding: const EdgeInsets.only(bottom: 10),
-                        finalPadding: const EdgeInsets.only(bottom: 10),
-                        initialElevation: 0.1,
-                        elevation: 2,
-                        title: Text(juego.nombre,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(
-                          'Jugadores: ${juego.jugadoresMax == -1 ? "" : "2"}${juego.jugadoresMax == -1 ? "" : "-"}${juego.jugadoresMax == -1 ? "Grupos" : juego.jugadoresMax}',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
-                            child: Text(juego.descripcion,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(fontSize: 16)),
-                          ),
-                          OverflowBar(
-                            alignment: MainAxisAlignment.spaceAround,
+                        Positioned.fill(
+                            child: Container(
+                                color: Colors.black.withOpacity(0.4))),
+                        Positioned(
+                          left: 20,
+                          bottom: 20,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (juego.jugable)
-                                TextButton(
-                                  onPressed: () {
+                              Text(juego.nombre,
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  if (juego.jugable) {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -400,73 +355,214 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                     );
+                                  } else {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => giffy.GiffyDialog.image(
+                                        Image.network(juego.gif,
+                                            height: 200, fit: BoxFit.cover),
+                                        title: Text(juego.nombre,
+                                            textAlign: TextAlign.center),
+                                        content: SingleChildScrollView(
+                                          child: Text(juego.reglas,
+                                              textAlign: TextAlign.center),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text('OK')),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: Icon(
+                                  juego.jugable
+                                      ? Icons.play_arrow_rounded
+                                      : Icons.info,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                                label: Text(juego.jugable ? "Jugar" : "Info"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.surfaceTint,
+                                  foregroundColor:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                      ]),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // --- TODOS LOS JUEGOS ---
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: Text("Todos los juegos",
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 5),
+              FutureBuilder<List<Juego>>(
+                future: _juegosFuture,
+                builder: (context, snapAll) {
+                  if (snapAll.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: LoadingAnimationWidget.stretchedDots(
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 75),
+                    );
+                  }
+                  if (snapAll.hasError) {
+                    return Center(child: Text('Error: ${snapAll.error}'));
+                  }
+                  final juegos = snapAll.data ?? [];
+                  final juegosFiltrados = _categoriaSeleccionada == null
+                      ? juegos
+                      : juegos.where((j) {
+                          if (_categoriaSeleccionada == "Jugable")
+                            return j.jugable;
+                          return j.tipo == _categoriaSeleccionada;
+                        }).toList();
+
+                  if (juegosFiltrados.isEmpty) {
+                    return const Center(
+                        child: Text(
+                            'No hay juegos disponibles en esta categoría.'));
+                  }
+
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(14),
+                      itemCount: juegosFiltrados.length,
+                      itemBuilder: (context, i) {
+                        final juego = juegosFiltrados[i];
+                        return ExpansionTileCard(
+                          animateTrailing: true,
+                          initialPadding: const EdgeInsets.only(bottom: 10),
+                          finalPadding: const EdgeInsets.only(bottom: 10),
+                          initialElevation: 0.1,
+                          elevation: 2,
+                          title: Text(juego.nombre,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                            'Jugadores: ${juego.jugadoresMax == -1 ? "" : "2"}${juego.jugadoresMax == -1 ? "" : "-"}${juego.jugadoresMax == -1 ? "Grupos" : juego.jugadoresMax}',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 8.0),
+                              child: Text(juego.descripcion,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(fontSize: 16)),
+                            ),
+                            OverflowBar(
+                              alignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                if (juego.jugable)
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => GamesPage(
+                                            juego: juego.tipo,
+                                            titulo: juego.nombre,
+                                            gif: juego.gif,
+                                            reglas: juego.reglas,
+                                            mostrar: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Column(
+                                      children: [
+                                        Icon(Icons.play_arrow_rounded),
+                                        SizedBox(height: 2),
+                                        Text('Jugar'),
+                                      ],
+                                    ),
+                                  ),
+                                TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => giffy.GiffyDialog.image(
+                                        Image.network(juego.gif,
+                                            height: 200, fit: BoxFit.cover),
+                                        title: Text(juego.nombre,
+                                            textAlign: TextAlign.center),
+                                        content: SingleChildScrollView(
+                                          child: Text(juego.reglas,
+                                              textAlign: TextAlign.center),
+                                        ),
+                                        actions: [
+                                          if (juego.jugable)
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => GamesPage(
+                                                      juego: juego.tipo,
+                                                      titulo: juego.nombre,
+                                                      gif: juego.gif,
+                                                      reglas: juego.reglas,
+                                                      mostrar: true,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('JUGAR'),
+                                            ),
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text('OK')),
+                                        ],
+                                      ),
+                                    );
                                   },
                                   child: const Column(
                                     children: [
-                                      Icon(Icons.play_arrow_rounded),
+                                      Icon(Icons.info_rounded),
                                       SizedBox(height: 2),
-                                      Text('Jugar'),
+                                      Text('Info'),
                                     ],
                                   ),
                                 ),
-                              TextButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => giffy.GiffyDialog.image(
-                                      Image.network(juego.gif,
-                                          height: 200, fit: BoxFit.cover),
-                                      title: Text(juego.nombre,
-                                          textAlign: TextAlign.center),
-                                      content: SingleChildScrollView(
-                                        child: Text(juego.reglas,
-                                            textAlign: TextAlign.center),
-                                      ),
-                                      actions: [
-                                        if (juego.jugable)
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => GamesPage(
-                                                    juego: juego.tipo,
-                                                    titulo: juego.nombre,
-                                                    gif: juego.gif,
-                                                    reglas: juego.reglas,
-                                                    mostrar: true,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: const Text('JUGAR'),
-                                          ),
-                                        TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text('OK')),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                child: const Column(
-                                  children: [
-                                    Icon(Icons.info_rounded),
-                                    SizedBox(height: 2),
-                                    Text('Info'),
-                                  ],
-                                ),
-                              ),
-                              BotonFavorito(nombreJuego: juego.nombre),
-                            ],
-                          )
-                        ],
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                                BotonFavorito(nombreJuego: juego.nombre),
+                              ],
+                            )
+                          ],
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ]),
+            if (_bannerAd != null)
+              Container(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                alignment: Alignment.center,
+                child: AdWidget(ad: _bannerAd!),
+              ),
           ]),
         ),
       ),

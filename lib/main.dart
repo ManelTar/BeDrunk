@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_aa/models/user_data_notifier.dart';
 import 'package:proyecto_aa/screens/auth_page.dart';
@@ -13,6 +14,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await MobileAds.instance.initialize();
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);

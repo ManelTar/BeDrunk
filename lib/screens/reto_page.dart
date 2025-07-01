@@ -14,6 +14,8 @@ class RetoPage extends StatefulWidget {
   State<RetoPage> createState() => _RetoPageState();
 }
 
+enum SwipeDirection { left, right }
+
 class _RetoPageState extends State<RetoPage> {
   final _random = Random();
   List<Preguntas> _retos = [];
@@ -27,6 +29,8 @@ class _RetoPageState extends State<RetoPage> {
   late List<String> _jugadores = [];
   int _turnoJugador = 0;
 
+  SwipeDirection _lastSwipeDirection = SwipeDirection.right;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +38,6 @@ class _RetoPageState extends State<RetoPage> {
     _cargarRetos();
   }
 
-  // 2) Cargar retos desde Firestore (solo tipo "reto")
   Future<void> _cargarRetos() async {
     setState(() => _loading = true);
     try {
@@ -51,7 +54,6 @@ class _RetoPageState extends State<RetoPage> {
           .where((p) => p.tipo.toLowerCase() == 'reto')
           .toList();
 
-      // Copiar todos los retos a la lista disponible
       _retosDisponibles = List.from(_retos);
     } catch (_) {
       _retos = [];
@@ -61,10 +63,8 @@ class _RetoPageState extends State<RetoPage> {
     setState(() => _loading = false);
   }
 
-  // 3) Elegir siguiente reto y avanzar turno de jugador
   void _siguienteReto() {
     if (_retosDisponibles.isEmpty) {
-      // Reiniciar si ya se usaron todos
       _retosDisponibles = List.from(_retos);
     }
 
@@ -77,13 +77,16 @@ class _RetoPageState extends State<RetoPage> {
     }
   }
 
-  // 4) Al tocar pantalla, actualizar reto y turno
   void _onSwipe(DragEndDetails details) {
-    // opcional: comprueba dirección por details.primaryVelocity
-    setState(() {
-      _siguienteReto();
-      _turnoJugador = (_turnoJugador + 1) % _jugadores.length;
-    });
+    if (details.primaryVelocity != null) {
+      setState(() {
+        _lastSwipeDirection = details.primaryVelocity! < 0
+            ? SwipeDirection.left
+            : SwipeDirection.right;
+        _siguienteReto();
+        _turnoJugador = (_turnoJugador + 1) % _jugadores.length;
+      });
+    }
   }
 
   @override
@@ -107,13 +110,27 @@ class _RetoPageState extends State<RetoPage> {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: _buildAnimatedJugador(
-                        key: ValueKey(_retoActual), // aquí detecta cambio
+                        key: ValueKey(_retoActual),
                       ),
                     ),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        final offset =
+                            _lastSwipeDirection == SwipeDirection.left
+                                ? const Offset(1.0, 0.0)
+                                : const Offset(-1.0, 0.0);
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: offset,
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        );
+                      },
                       child: _buildAnimatedPregunta(
-                        key: ValueKey(_retoActual), // aquí detecta cambio
+                        key: ValueKey(_retoActual?.pregunta),
                       ),
                     ),
                   ],
@@ -123,25 +140,24 @@ class _RetoPageState extends State<RetoPage> {
     );
   }
 
-// Esta función construye tu AnimatedTextKit envuelto en un widget con key
   Widget _buildAnimatedJugador({required Key key}) {
     return SizedBox(
       key: key,
       width: double.infinity,
       height: 80,
       child: DefaultTextStyle(
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium!
-              .copyWith(color: Theme.of(context).colorScheme.onSurface),
-          textAlign: TextAlign.center,
-          child: OffsetText(
-            text: _jugadores[_turnoJugador],
-            duration: Duration(milliseconds: 400),
-            type: AnimationType.letter,
-            textStyle:
-                GoogleFonts.battambang(textStyle: TextStyle(fontSize: 75)),
-          )),
+        style: Theme.of(context)
+            .textTheme
+            .headlineMedium!
+            .copyWith(color: Theme.of(context).colorScheme.onSurface),
+        textAlign: TextAlign.center,
+        child: OffsetText(
+          text: _jugadores[_turnoJugador],
+          duration: Duration(milliseconds: 400),
+          type: AnimationType.letter,
+          textStyle: GoogleFonts.battambang(textStyle: TextStyle(fontSize: 75)),
+        ),
+      ),
     );
   }
 
@@ -149,19 +165,20 @@ class _RetoPageState extends State<RetoPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Card(
-          elevation: 20,
-          shadowColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-          key: key,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-            child: OffsetText(
-              text: _retoActual!.pregunta,
-              type: AnimationType.word,
-              slideType: SlideAnimationType.bottomTop,
-              duration: const Duration(milliseconds: 250),
-              textStyle: colorizeTextStyle,
-            ),
-          )),
+        elevation: 20,
+        shadowColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        key: key,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+          child: OffsetText(
+            text: _retoActual!.pregunta,
+            type: AnimationType.word,
+            slideType: SlideAnimationType.bottomTop,
+            duration: const Duration(milliseconds: 250),
+            textStyle: colorizeTextStyle,
+          ),
+        ),
+      ),
     );
   }
 }

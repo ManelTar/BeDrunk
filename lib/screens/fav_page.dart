@@ -6,20 +6,13 @@ import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/components/my_card_picture.dart';
-import 'package:proyecto_aa/components/my_coleccion_picture.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_profile_picture.dart';
-import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/screens/coleccion_page.dart';
 import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/legal_page.dart';
-import 'package:proyecto_aa/screens/help_page.dart';
-import 'package:proyecto_aa/screens/legal_page.dart';
-import 'package:proyecto_aa/screens/search_page.dart';
-import 'package:expansion_tile_card/expansion_tile_card.dart';
-import 'package:giffy_dialog/giffy_dialog.dart' as giffy;
 
 class FavPage extends StatefulWidget {
   const FavPage({super.key});

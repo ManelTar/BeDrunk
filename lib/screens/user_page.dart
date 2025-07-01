@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:proyecto_aa/components/my_changable_picture.dart';
-import 'package:proyecto_aa/models/user_data_notifier.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});

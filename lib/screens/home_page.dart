@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto_aa/components/ad_helper.dart';
 import 'package:proyecto_aa/components/my_button_fav.dart';
 import 'package:proyecto_aa/components/my_drawer_picture.dart';
 import 'package:proyecto_aa/components/my_home_card.dart';
@@ -13,14 +14,11 @@ import 'package:proyecto_aa/components/my_profile_picture.dart';
 import 'package:proyecto_aa/components/my_rateup_button.dart';
 import 'package:proyecto_aa/models/juego.dart';
 import 'package:proyecto_aa/models/user_data_notifier.dart';
-import 'package:proyecto_aa/screens/fav_page.dart';
 import 'package:proyecto_aa/screens/games_page.dart';
-import 'package:proyecto_aa/screens/help_page.dart';
 import 'package:proyecto_aa/screens/legal_page.dart';
-import 'package:proyecto_aa/screens/search_page.dart';
 import 'package:proyecto_aa/screens/settings_page.dart';
+import 'package:proyecto_aa/screens/stats_page.dart';
 import 'package:proyecto_aa/services/games_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -120,6 +118,12 @@ class _HomePageState extends State<HomePage> {
                     title: const Text('Información legal'),
                     onTap: () => Navigator.push(context,
                         MaterialPageRoute(builder: (_) => const LegalPage())),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.bar_chart_sharp),
+                    title: const Text('Estadísticas'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const StatsPage())),
                   ),
                   RateAppButton()
                 ],

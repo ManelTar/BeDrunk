@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:proyecto_aa/models/player.dart';
+import 'package:proyecto_aa/services/user_service.dart';
 import '../models/game.dart';
 import '../services/game_service.dart';
 
@@ -52,6 +53,9 @@ class ResultPage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () async {
                       await GameService().startGame(game.id);
+                      await UserService().anadirTrago(
+                        resultPlayer.uid,
+                      );
                     },
                     child: Text("Siguiente Ronda"),
                   )

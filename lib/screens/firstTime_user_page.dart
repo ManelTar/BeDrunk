@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:proyecto_aa/components/my_changable_picture.dart';
-import 'package:proyecto_aa/screens/home_page.dart';
 import 'package:proyecto_aa/screens/main_page.dart';
 
 class FirsttimeUserPage extends StatefulWidget {
@@ -106,7 +105,8 @@ class _FirsttimeUserPageState extends State<FirsttimeUserPage> {
       await userRef.doc(uid).set({
         'username': nuevoUsername,
         'nombre': nuevoNombre,
-        'profileCompleted': true
+        'profileCompleted': true,
+        'tragos': 0
       }, SetOptions(merge: true));
 
       await FirebaseAuth.instance.currentUser!.reload();

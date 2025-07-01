@@ -11,6 +11,9 @@ class Game {
   final int round;
   final String? resultUid;
   final List<String> usedQuestionIds;
+  final String? mostVotedUid;
+  final String? leastVotedUid;
+  final Map<String, dynamic> votes;
 
   Game({
     required this.id,
@@ -22,6 +25,9 @@ class Game {
     required this.round,
     this.resultUid,
     required this.usedQuestionIds,
+    required this.mostVotedUid,
+    required this.leastVotedUid,
+    required this.votes,
   });
 
   factory Game.fromFirestore(DocumentSnapshot doc) {
@@ -37,12 +43,15 @@ class Game {
       hostId: data['hostId'],
       status: data['status'],
       round: data['round'],
+      mostVotedUid: data['mostVotedUid'],
+      leastVotedUid: data['leastVotedUid'],
       currentQuestionText: data['currentQuestionText'],
       resultUid: data['resultUid'],
       players: players,
       usedQuestionIds:
           (data['usedQuestionIds'] as List?)?.whereType<String>().toList() ??
               [],
+      votes: Map<String, dynamic>.from(data['votes'] ?? {}), // <- nuevo
     );
   }
 
@@ -53,9 +62,12 @@ class Game {
       'players': players.map((p) => p.toMap()).toList(),
       'status': status,
       'currentQuestionText': currentQuestionText,
+      'mostVotedUid': mostVotedUid,
+      'leastVotedUid': leastVotedUid,
       'round': round,
       'resultUid': resultUid,
       'usedQuestionIds': usedQuestionIds,
+      'votes': votes,
     };
   }
 }

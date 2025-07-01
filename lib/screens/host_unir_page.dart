@@ -6,6 +6,7 @@ import 'package:proyecto_aa/models/player.dart';
 import 'package:proyecto_aa/screens/lobby_page.dart';
 import 'package:proyecto_aa/services/game_service.dart';
 import 'package:proyecto_aa/services/storage_service.dart';
+import 'package:proyecto_aa/services/user_service.dart';
 
 class HostUnirPage extends StatefulWidget {
   const HostUnirPage({super.key});
@@ -49,6 +50,7 @@ class _HostUnirPageState extends State<HostUnirPage> {
             GestureDetector(
               onTap: () async {
                 await hostearPartida();
+                UserService().anadirPartidasTotales(currentUser.uid);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -125,6 +127,8 @@ class _HostUnirPageState extends State<HostUnirPage> {
 
                     try {
                       await GameService().joinGame(enteredGameId, player);
+
+                      UserService().anadirPartidasTotales(currentUser.uid);
 
                       // Navegar a la sala de juego
                       Navigator.pushReplacement(

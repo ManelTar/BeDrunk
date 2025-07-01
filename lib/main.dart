@@ -6,7 +6,6 @@ import 'package:proyecto_aa/screens/auth_page.dart';
 import 'package:proyecto_aa/utils/my_themecode.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_aa/firebase_options.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +13,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print('Flutter Error: ${details.exception}');
+  };
 
   final firestore = FirebaseFirestore.instance;
 

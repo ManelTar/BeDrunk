@@ -4,6 +4,7 @@ class Player {
   final String photoUrl;
   bool hasVoted;
   String? voteTo;
+  int votedCount;
 
   Player({
     required this.uid,
@@ -11,6 +12,7 @@ class Player {
     required this.photoUrl,
     this.hasVoted = false,
     this.voteTo,
+    this.votedCount = 0,
   });
 
   Player copyWith({
@@ -19,6 +21,7 @@ class Player {
     String? photoUrl,
     bool? hasVoted,
     String? voteTo,
+    int? votedCount,
   }) {
     return Player(
       uid: uid ?? this.uid,
@@ -26,6 +29,7 @@ class Player {
       photoUrl: photoUrl ?? this.photoUrl,
       hasVoted: hasVoted ?? this.hasVoted,
       voteTo: voteTo ?? this.voteTo,
+      votedCount: votedCount ?? this.votedCount,
     );
   }
 
@@ -35,6 +39,7 @@ class Player {
         'photoUrl': photoUrl,
         'hasVoted': hasVoted,
         'voteTo': voteTo,
+        'votedCount': votedCount,
       };
 
   static Player fromMap(Map<String, dynamic> map) => Player(
@@ -43,5 +48,6 @@ class Player {
         photoUrl: map['photoUrl'],
         hasVoted: map['hasVoted'],
         voteTo: map['voteTo'],
+        votedCount: map['votedCount'] ?? 0,
       );
 }

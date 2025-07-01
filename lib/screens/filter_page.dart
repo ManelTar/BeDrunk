@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:proyecto_aa/screens/dice_page.dart';
-import 'package:proyecto_aa/screens/dice_page_rey.dart';
 
 class FilterPage extends StatelessWidget {
   final String tipoJuego;

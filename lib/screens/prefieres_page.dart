@@ -4,18 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:proyecto_aa/screens/home_page.dart';
+import 'package:proyecto_aa/models/player.dart';
+import 'package:proyecto_aa/screens/result_final_page.dart';
 import 'package:proyecto_aa/screens/result_page.dart';
 import '../models/game.dart';
 import '../services/game_service.dart';
 
-class PrefieresPage extends StatelessWidget {
+class PrefieresPage extends StatefulWidget {
   final String gameId;
   const PrefieresPage({super.key, required this.gameId});
 
   @override
+  State<PrefieresPage> createState() => _PrefieresPageState();
+}
+
+class _PrefieresPageState extends State<PrefieresPage> {
+  bool _navegado = false;
+  @override
   Widget build(BuildContext context) {
-    final gameRef = FirebaseFirestore.instance.collection('games').doc(gameId);
+    final gameRef =
+        FirebaseFirestore.instance.collection('games').doc(widget.gameId);
 
     return StreamBuilder<DocumentSnapshot>(
       stream: gameRef.snapshots(),
@@ -27,8 +35,25 @@ class PrefieresPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary, size: 75)));
         final game = Game.fromFirestore(snapshot.data!);
         final userId = FirebaseAuth.instance.currentUser!.uid;
-        final me = game.players.firstWhere((p) => p.uid == userId);
+        final me = game.players.firstWhere(
+          (p) => p.uid == userId,
+          orElse: () => Player(uid: '', name: 'Desconocido', photoUrl: ''),
+        );
+
         final hasVoted = me.hasVoted;
+
+        if (game.status == 'ended' && !_navegado) {
+          _navegado = true;
+
+          Future.microtask(() {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ResultadoFinalPage(gameId: game.id),
+              ),
+            );
+          });
+        }
 
         if (game.resultUid != null) {
           // Todos han votado, mostrar resultados
@@ -40,6 +65,22 @@ class PrefieresPage extends StatelessWidget {
           appBar: AppBar(
             title: Text('Ronda ${game.round - 1}'),
             backgroundColor: Theme.of(context).colorScheme.surfaceTint,
+            actions: [
+              IconButton(
+                onPressed: () async {
+                  final uid = FirebaseAuth.instance.currentUser!.uid;
+                  await GameService().leaveGame(widget.gameId, uid);
+
+                  if (me.uid != game.hostId) {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  }
+                },
+                icon: Icon(Icons.exit_to_app),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.center,

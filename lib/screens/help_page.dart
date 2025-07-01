@@ -1,9 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:proyecto_aa/screens/login_page.dart';
-import 'package:proyecto_aa/screens/privacy_page.dart';
-import 'package:proyecto_aa/screens/terms_page.dart';
-import 'package:proyecto_aa/screens/themes_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpPage extends StatelessWidget {

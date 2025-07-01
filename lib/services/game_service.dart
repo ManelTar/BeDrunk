@@ -1,10 +1,10 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proyecto_aa/models/game.dart';
+import 'package:proyecto_aa/services/user_service.dart';
 import '../models/player.dart';
 
 class GameService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _games = FirebaseFirestore.instance.collection('games');
   final _questions = FirebaseFirestore.instance.collection('preguntas');
 
@@ -65,6 +65,8 @@ class GameService {
     await gameRef.update({
       'players': FieldValue.arrayUnion([player.toMap()])
     });
+
+    UserService().anadirPartidasTotales(player.uid);
   }
 
   /// Comienza la partida
@@ -92,6 +94,8 @@ class GameService {
       'currentQuestionText': newQuestionText,
       'resultUid': null,
       'players': updatedPlayers.map((p) => p.toMap()).toList(),
+      'mostVotedUid': '',
+      'leastVotedUid': '',
       'usedQuestionIds': [...usedIds, newQuestionId],
     });
   }
@@ -100,36 +104,51 @@ class GameService {
   Future<void> submitVote(
       String gameId, String voterUid, String votedUid) async {
     final gameRef = _games.doc(gameId);
-    final gameSnap = await gameRef.get();
-    final game = Game.fromFirestore(gameSnap);
 
-    final updatedPlayers = game.players.map((p) {
-      if (p.uid == voterUid) {
-        return p.copyWith(hasVoted: true, voteTo: votedUid);
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final gameSnap = await transaction.get(gameRef);
+      final game = Game.fromFirestore(gameSnap);
+      final players = [...game.players];
+
+      // Buscar al votante
+      final voterIndex = players.indexWhere((p) => p.uid == voterUid);
+      if (voterIndex != -1) {
+        players[voterIndex] = players[voterIndex].copyWith(
+          hasVoted: true,
+          voteTo: votedUid,
+        );
       }
-      return p;
-    }).toList();
 
-    await gameRef.update({
-      'players': updatedPlayers.map((p) => p.toMap()).toList(),
-    });
+      // Sumar el voto al jugador votado
+      final votedIndex = players.indexWhere((p) => p.uid == votedUid);
+      if (votedIndex != -1) {
+        final currentCount = players[votedIndex].votedCount;
+        players[votedIndex] = players[votedIndex].copyWith(
+          votedCount: currentCount + 1,
+        );
+      }
 
-    final allVoted = updatedPlayers.every((p) => p.hasVoted);
+      transaction.update(gameRef, {
+        'players': players.map((p) => p.toMap()).toList(),
+      });
 
-    if (allVoted) {
-      final votes = <String, int>{};
-      for (final p in updatedPlayers) {
-        if (p.voteTo != null) {
-          votes[p.voteTo!] = (votes[p.voteTo!] ?? 0) + 1;
+      final allVoted = players.every((p) => p.hasVoted);
+
+      if (allVoted) {
+        final votes = <String, int>{};
+        for (final p in players) {
+          if (p.voteTo != null) {
+            votes[p.voteTo!] = (votes[p.voteTo!] ?? 0) + 1;
+          }
         }
+
+        final resultUid = votes.entries.isNotEmpty
+            ? votes.entries.reduce((a, b) => a.value >= b.value ? a : b).key
+            : null;
+
+        transaction.update(gameRef, {'resultUid': resultUid});
       }
-
-      final resultUid = votes.entries.isNotEmpty
-          ? votes.entries.reduce((a, b) => a.value >= b.value ? a : b).key
-          : null;
-
-      await gameRef.update({'resultUid': resultUid});
-    }
+    });
   }
 
   /// Verifica votos y pasa de ronda
@@ -185,5 +204,71 @@ class GameService {
     } while (exists);
 
     return code;
+  }
+
+  Future<void> leaveGame(String gameId, String playerUid) async {
+    final gameRef = _games.doc(gameId);
+    final snapshot = await gameRef.get();
+
+    if (!snapshot.exists) return;
+
+    final game = Game.fromFirestore(snapshot);
+
+    // Si el que sale es el host, NO lo eliminamos, solo terminamos el juego
+    if (game.hostId == playerUid) {
+      await endGame(gameId);
+    } else {
+      // Si es un jugador normal, lo eliminamos del array
+      final updatedPlayers =
+          game.players.where((p) => p.uid != game.hostId).toList();
+
+      await gameRef.update({
+        'players': updatedPlayers.map((p) => p.toMap()).toList(),
+      });
+    }
+  }
+
+  Future<void> endGame(String gameId) async {
+    final gameRef = FirebaseFirestore.instance.collection('games').doc(gameId);
+    final snapshot = await gameRef.get();
+
+    if (!snapshot.exists) return;
+
+    final game = Game.fromFirestore(snapshot);
+    final players = game.players;
+
+    if (players.isEmpty) {
+      await gameRef.update({'status': 'ended'});
+      return;
+    }
+
+    // Jugadores con al menos un voto (para evitar empates forzados en 0)
+    final playersWithVotes = players.where((p) => p.votedCount > 0).toList();
+
+    // Si nadie recibió votos, termina sin resultado
+    if (playersWithVotes.isEmpty) {
+      await gameRef.update({'status': 'ended'});
+      return;
+    }
+
+    // Más votado
+    final mostVotedPlayer = playersWithVotes.reduce(
+      (a, b) => a.votedCount >= b.votedCount ? a : b,
+    );
+
+    UserService().anadirPartidaGanada(mostVotedPlayer.uid);
+
+    // Menos votado (de los que recibieron votos)
+    final leastVotedPlayer = playersWithVotes.reduce(
+      (a, b) => a.votedCount <= b.votedCount ? a : b,
+    );
+
+    UserService().anadirPartidaPerdida(leastVotedPlayer.uid);
+
+    await gameRef.update({
+      'status': 'ended',
+      'mostVotedUid': mostVotedPlayer.uid,
+      'leastVotedUid': leastVotedPlayer.uid,
+    });
   }
 }
